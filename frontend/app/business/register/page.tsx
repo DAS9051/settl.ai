@@ -13,6 +13,7 @@ export default function RegisterBusinessPage() {
 
   const [name, setName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
+  const [businessNumber, setBusinessNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [registered, setRegistered] = useState<Business | null>(null)
@@ -27,6 +28,7 @@ export default function RegisterBusinessPage() {
       const business = await registerBusiness(token, {
         name: name.trim(),
         contact_email: contactEmail.trim(),
+        business_number: businessNumber.trim() || undefined,
       })
       setRegistered(business)
     } catch (err) {
@@ -102,6 +104,23 @@ export default function RegisterBusinessPage() {
             placeholder="hiring@yourcompany.com"
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Business Registration Number{' '}
+            <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={businessNumber}
+            onChange={(e) => setBusinessNumber(e.target.value)}
+            placeholder="e.g. 123456789"
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Providing your Canadian business registration number will auto-verify your account and add a verified badge to your job listings.
+          </p>
         </div>
 
         <button

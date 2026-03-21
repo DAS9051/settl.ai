@@ -13,6 +13,7 @@ class Business(Base):
     clerk_user_id = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     contact_email = Column(String, nullable=False)
+    business_number = Column(String, nullable=True)
     verified = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

@@ -20,6 +20,7 @@ class Profile(Base):
     experience = Column(JSON, default=list, nullable=False)
     # JSON list of strings, e.g. ["Backend Engineer", "Data Scientist"]
     target_roles = Column(JSON, default=list, nullable=False)
+    preferred_language = Column(String, default="English", nullable=False, server_default="English")
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,

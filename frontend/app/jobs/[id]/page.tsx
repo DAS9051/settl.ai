@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { getJob, getSkillsGap, getSalaryInsight, streamCoverLetter, getInterviewPrep } from '@/lib/api'
-import type { Job, SkillsGapResponse, SalaryInsightResponse, InterviewPrepResponse } from '@/lib/types'
+import { getJob, getSkillsGap, getSalaryInsight, streamCoverLetter, getInterviewPrep, translateJobJargon, getFirstWeekPrep, getProfile } from '@/lib/api'
+import type { Job, SkillsGapResponse, SalaryInsightResponse, InterviewPrepResponse, JargonTranslationResponse, FirstWeekPrepResponse } from '@/lib/types'
 
 function Spinner() {
   return (
@@ -37,6 +37,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null)
   const [jobLoading, setJobLoading] = useState(true)
   const [jobError, setJobError] = useState<string | null>(null)
+  const [preferredLanguage, setPreferredLanguage] = useState('English')
 
   // Skills gap
   const [gapLoading, setGapLoading] = useState(false)
@@ -62,6 +63,18 @@ export default function JobDetailPage() {
   const [prep, setPrep] = useState<InterviewPrepResponse | null>(null)
   const [openQuestions, setOpenQuestions] = useState<Set<number>>(new Set())
 
+  // Jargon translator
+  const [jargonOpen, setJargonOpen] = useState(false)
+  const [jargonLoading, setJargonLoading] = useState(false)
+  const [jargonError, setJargonError] = useState<string | null>(null)
+  const [jargon, setJargon] = useState<JargonTranslationResponse | null>(null)
+
+  // First week prep
+  const [fwpOpen, setFwpOpen] = useState(false)
+  const [fwpLoading, setFwpLoading] = useState(false)
+  const [fwpError, setFwpError] = useState<string | null>(null)
+  const [fwp, setFwp] = useState<FirstWeekPrepResponse | null>(null)
+
   useEffect(() => {
     async function load() {
       setJobLoading(true)
@@ -77,6 +90,20 @@ export default function JobDetailPage() {
     }
     load()
   }, [id])
+
+  useEffect(() => {
+    if (!isSignedIn) return
+    async function loadLanguage() {
+      try {
+        const token = await getToken()
+        const profile = await getProfile(token)
+        if (profile.preferred_language) setPreferredLanguage(profile.preferred_language)
+      } catch {
+        // Ignore — default to English
+      }
+    }
+    loadLanguage()
+  }, [isSignedIn, getToken])
 
   async function handleSkillsGap() {
     setGapLoading(true)
@@ -150,6 +177,35 @@ export default function JobDetailPage() {
       setPrepError(err instanceof Error ? err.message : 'Failed to load interview prep')
     } finally {
       setPrepLoading(false)
+    }
+  }
+
+  async function handleJargonTranslate() {
+    setJargonLoading(true)
+    setJargonError(null)
+    setJargon(null)
+    try {
+      const data = await translateJobJargon(id, preferredLanguage)
+      setJargon(data)
+    } catch (err) {
+      setJargonError(err instanceof Error ? err.message : 'Failed to translate jargon')
+    } finally {
+      setJargonLoading(false)
+    }
+  }
+
+  async function handleFirstWeekPrep() {
+    setFwpLoading(true)
+    setFwpError(null)
+    setFwp(null)
+    try {
+      const token = await getToken()
+      const data = await getFirstWeekPrep(token, id)
+      setFwp(data)
+    } catch (err) {
+      setFwpError(err instanceof Error ? err.message : 'Failed to get first week prep')
+    } finally {
+      setFwpLoading(false)
     }
   }
 
@@ -346,6 +402,70 @@ export default function JobDetailPage() {
         )}
       </div>
 
+      {/* Jargon Translator — public */}
+      <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden shadow-sm">
+        <button
+          onClick={() => {
+            setJargonOpen((prev) => !prev)
+            if (!jargonOpen && !jargon) handleJargonTranslate()
+          }}
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+              <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">Translate Workplace Jargon</span>
+          </div>
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${jargonOpen ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {jargonOpen && (
+          <div className="px-6 pb-6 border-t border-gray-100">
+            {jargonLoading ? (
+              <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
+                <Spinner /> Analyzing jargon...
+              </div>
+            ) : jargonError ? (
+              <div className="py-4">
+                <p className="text-sm text-red-600 mb-2">{jargonError}</p>
+                <button onClick={handleJargonTranslate} className="text-sm text-blue-700 underline">Retry</button>
+              </div>
+            ) : jargon ? (
+              <div className="pt-4 space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Annotated Description</p>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap bg-indigo-50 rounded-lg p-3">{jargon.translated}</p>
+                </div>
+                {jargon.glossary.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Glossary</p>
+                    <div className="space-y-2">
+                      {jargon.glossary.map((g, i) => (
+                        <div key={i} className="flex gap-2 text-sm">
+                          <span className="font-semibold text-indigo-700 shrink-0">"{g.term}"</span>
+                          <span className="text-gray-600">— {g.explanation}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {jargon.glossary.length === 0 && (
+                  <p className="text-sm text-gray-500 italic">No workplace jargon detected in this posting.</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
       {/* Skills Gap — signed-in only */}
       {isSignedIn && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4 shadow-sm">
@@ -478,6 +598,63 @@ export default function JobDetailPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* First Week Prep — signed-in only */}
+      {isSignedIn && (
+        <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden shadow-sm">
+          <button
+            onClick={() => {
+              setFwpOpen((prev) => !prev)
+              if (!fwpOpen && !fwp) handleFirstWeekPrep()
+            }}
+            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">First Week Prep Guide</span>
+            </div>
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform ${fwpOpen ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {fwpOpen && (
+            <div className="px-6 pb-6 border-t border-gray-100">
+              {fwpLoading ? (
+                <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
+                  <Spinner /> Preparing your guide...
+                </div>
+              ) : fwpError ? (
+                <div className="py-4">
+                  <p className="text-sm text-red-600 mb-2">{fwpError}</p>
+                  <button onClick={handleFirstWeekPrep} className="text-sm text-blue-700 underline">Retry</button>
+                </div>
+              ) : fwp ? (
+                <div className="pt-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">5 Tips for Your First Week</p>
+                  <ol className="space-y-3">
+                    {fwp.tips.map((tip, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-gray-700">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-700 font-bold flex items-center justify-center text-xs">
+                          {i + 1}
+                        </span>
+                        <span className="leading-relaxed pt-0.5">{tip}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
       )}
 

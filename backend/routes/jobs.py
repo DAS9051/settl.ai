@@ -8,9 +8,24 @@ from database import get_db
 from models.business import Business
 from models.job import Job
 from models.profile import Profile
-from schemas import InterviewPrepResponse, JobCreate, JobListOut, JobOut, ProfileOut, SkillsGapResponse
+from schemas import (
+    FirstWeekPrepResponse,
+    InterviewPrepResponse,
+    JargonTranslateRequest,
+    JargonTranslationResponse,
+    JobCreate,
+    JobListOut,
+    JobOut,
+    ProfileOut,
+    SkillsGapResponse,
+)
 from services.auth import get_current_user_dep
-from services.claude_service import analyze_skills_gap, generate_interview_prep
+from services.claude_service import (
+    analyze_skills_gap,
+    generate_interview_prep,
+    get_first_week_prep,
+    translate_jargon,
+)
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -129,7 +144,8 @@ def skills_gap(
 
     job_schema = _job_to_out(job, db)
     profile_schema = ProfileOut.model_validate(profile)
-    return analyze_skills_gap(profile_schema, job_schema)
+    language = getattr(profile, "preferred_language", "English") or "English"
+    return analyze_skills_gap(profile_schema, job_schema, language=language)
 
 
 @router.post("/{job_id}/interview-prep", response_model=InterviewPrepResponse)
@@ -156,7 +172,41 @@ def interview_prep(
 
     job_schema = _job_to_out(job, db)
     profile_schema = ProfileOut.model_validate(profile)
-    return generate_interview_prep(job_schema, profile_schema)
+    language = getattr(profile, "preferred_language", "English") or "English"
+    return generate_interview_prep(job_schema, profile_schema, language=language)
+
+
+@router.post("/{job_id}/translate", response_model=JargonTranslationResponse)
+def translate_job_jargon(
+    job_id: str,
+    payload: JargonTranslateRequest,
+    db: Session = Depends(get_db),
+):
+    """Translate workplace jargon in a job description. Public endpoint."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    language = payload.language or "English"
+    return translate_jargon(job.description, language=language)
+
+
+@router.post("/{job_id}/first-week-prep", response_model=FirstWeekPrepResponse)
+def first_week_prep(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Generate first-week cultural prep tips for an immigrant starting this job."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    clerk_user_id: str = current_user.get("sub", "")
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    language = getattr(profile, "preferred_language", "English") or "English" if profile else "English"
+
+    job_schema = _job_to_out(job, db)
+    return get_first_week_prep(job_schema, language=language)
 
 
 @router.patch("/{job_id}/verify", response_model=JobOut)

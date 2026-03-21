@@ -10,6 +10,10 @@ import type {
   SalaryInsightResponse,
   CoverLetterResponse,
   InterviewPrepResponse,
+  JargonTranslationResponse,
+  FirstWeekPrepResponse,
+  QuizQuestion,
+  QuizEvaluationResponse,
 } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -281,6 +285,87 @@ export async function getInterviewPrep(
 
   if (!res.ok) {
     throw new Error(`Failed to get interview prep: ${res.statusText}`)
+  }
+
+  return res.json()
+}
+
+export async function translateJobJargon(
+  jobId: string,
+  language: string = 'English'
+): Promise<JargonTranslationResponse> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}/translate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ language }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to translate jargon: ${res.statusText}`)
+  }
+
+  return res.json()
+}
+
+export async function getFirstWeekPrep(
+  token: string | null,
+  jobId: string
+): Promise<FirstWeekPrepResponse> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}/first-week-prep`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to get first week prep: ${res.statusText}`)
+  }
+
+  return res.json()
+}
+
+export async function setUserRole(token: string | null, role: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/auth/set-role`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ role }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to set role: ${res.statusText}`)
+  }
+}
+
+export async function getQuizQuestion(
+  category?: string,
+  language: string = 'English'
+): Promise<QuizQuestion> {
+  const res = await fetch(`${API_URL}/api/quiz/question`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ category, language }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to get quiz question: ${res.statusText}`)
+  }
+
+  return res.json()
+}
+
+export async function evaluateQuizAnswer(
+  question: string,
+  options: string[],
+  selected_answer: string,
+  language: string = 'English'
+): Promise<QuizEvaluationResponse> {
+  const res = await fetch(`${API_URL}/api/quiz/evaluate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, options, selected_answer, language }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to evaluate answer: ${res.statusText}`)
   }
 
   return res.json()

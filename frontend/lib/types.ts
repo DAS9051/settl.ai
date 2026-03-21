@@ -31,6 +31,7 @@ export interface Profile {
   certifications: string[]
   experience: ExperienceEntry[]
   target_roles: string[]
+  preferred_language: string
 }
 
 export interface CounselResponse {
@@ -43,6 +44,7 @@ export interface Business {
   id: string
   name: string
   contact_email: string
+  business_number?: string | null
   verified: boolean
   created_at: string
 }
@@ -63,6 +65,7 @@ export interface PostJobPayload {
 export interface RegisterBusinessPayload {
   name: string
   contact_email: string
+  business_number?: string
 }
 
 export interface SkillsGapResponse {
@@ -92,4 +95,31 @@ export interface InterviewQuestion {
 
 export interface InterviewPrepResponse {
   questions: InterviewQuestion[]
+}
+
+export interface GlossaryTerm {
+  term: string
+  explanation: string
+}
+
+export interface JargonTranslationResponse {
+  original: string
+  translated: string
+  glossary: GlossaryTerm[]
+}
+
+export interface FirstWeekPrepResponse {
+  tips: string[]
+}
+
+export interface QuizQuestion {
+  question: string
+  options: string[]
+  category: string
+}
+
+export interface QuizEvaluationResponse {
+  correct: boolean
+  correct_answer: string
+  feedback: string
 }

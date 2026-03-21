@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [skillsInput, setSkillsInput] = useState('')
   const [certificationsInput, setCertificationsInput] = useState('')
   const [targetRolesInput, setTargetRolesInput] = useState('')
+  const [preferredLanguage, setPreferredLanguage] = useState('English')
   const [education, setEducation] = useState<EducationEntry[]>([emptyEducation()])
   const [experience, setExperience] = useState<ExperienceEntry[]>([emptyExperience()])
 
@@ -39,6 +40,7 @@ export default function ProfilePage() {
         setSkillsInput(data.skills.join(', '))
         setCertificationsInput(data.certifications.join(', '))
         setTargetRolesInput(data.target_roles.join(', '))
+        setPreferredLanguage(data.preferred_language || 'English')
         setEducation(data.education.length > 0 ? data.education : [emptyEducation()])
         setExperience(data.experience.length > 0 ? data.experience : [emptyExperience()])
       } catch {
@@ -69,6 +71,7 @@ export default function ProfilePage() {
         skills: csvToArray(skillsInput),
         certifications: csvToArray(certificationsInput),
         target_roles: csvToArray(targetRolesInput),
+        preferred_language: preferredLanguage,
         education: education.filter((e) => e.school.trim() || e.degree.trim()),
         experience: experience.filter((e) => e.company.trim() || e.role.trim()),
       }
@@ -233,6 +236,25 @@ export default function ProfilePage() {
             placeholder="e.g. AWS Solutions Architect, PMP (comma-separated)"
             className={inputClass}
           />
+        </div>
+
+        {/* Preferred Language */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Preferred Language</h2>
+          <p className="text-xs text-gray-400 mb-3">AI responses (career advice, interview prep, etc.) will be in this language.</p>
+          <select
+            value={preferredLanguage}
+            onChange={(e) => setPreferredLanguage(e.target.value)}
+            className={inputClass}
+          >
+            <option value="English">English</option>
+            <option value="Spanish">Español (Spanish)</option>
+            <option value="French">Français (French)</option>
+            <option value="Hindi">हिन्दी (Hindi)</option>
+            <option value="Tagalog">Tagalog</option>
+            <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+            <option value="Mandarin (Simplified)">中文简体 (Mandarin Simplified)</option>
+          </select>
         </div>
 
         {/* Education */}

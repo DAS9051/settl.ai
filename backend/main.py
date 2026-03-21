@@ -15,6 +15,8 @@ import models.job       # noqa: F401
 import models.profile   # noqa: F401
 
 from routes import businesses, counsel, jobs, profile, resume, insights
+from routes import auth as auth_router
+from routes import quiz as quiz_router
 
 app = FastAPI(
     title="settl.ai API",
@@ -55,6 +57,8 @@ app.include_router(businesses.router, prefix="/api")
 app.include_router(counsel.router, prefix="/api")
 app.include_router(insights.router, prefix="/api")
 app.include_router(resume.router, prefix="/api")
+app.include_router(auth_router.router, prefix="/api")
+app.include_router(quiz_router.router, prefix="/api")
 
 
 # ---------------------------------------------------------------------------

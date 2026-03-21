@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,6 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.business import Business
 from schemas import BusinessCreate, BusinessOut
+
 from services.auth import get_current_user_dep
 
 router = APIRouter(prefix="/businesses", tags=["businesses"])
@@ -30,11 +32,16 @@ def register_business(
             detail="A business is already registered for this account.",
         )
 
+    is_valid_bn = bool(
+        payload.business_number
+        and re.match(r'^\d{9}', payload.business_number.strip())
+    )
     business = Business(
         clerk_user_id=clerk_user_id,
         name=payload.name,
         contact_email=payload.contact_email,
-        verified=False,
+        business_number=payload.business_number,
+        verified=is_valid_bn,
     )
     db.add(business)
     db.commit()

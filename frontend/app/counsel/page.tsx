@@ -1,23 +1,41 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@clerk/nextjs'
-import { getProfile, streamCounsel } from '@/lib/api'
+import { useAuth, useUser } from '@clerk/nextjs'
+import { getProfile, getCounsel } from '@/lib/api'
 import type { Profile, CounselResponse } from '@/lib/types'
 import CounselorResult from '@/components/CounselorResult'
 
+const CACHE_KEY_PREFIX = 'counselResult_'
+
 export default function CounselPage() {
   const { getToken } = useAuth()
+  const { user } = useUser()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [counselLoading, setCounselLoading] = useState(false)
   const [result, setResult] = useState<CounselResponse | null>(null)
+  const [cachedAt, setCachedAt] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Streaming state
-  const [streamingText, setStreamingText] = useState<string | null>(null)
+  const cacheKey = user ? `${CACHE_KEY_PREFIX}${user.id}` : null
+
+  // Load cached result on mount
+  useEffect(() => {
+    if (!cacheKey) return
+    try {
+      const raw = localStorage.getItem(cacheKey)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        setResult(parsed.result)
+        setCachedAt(new Date(parsed.savedAt))
+      }
+    } catch {
+      // Ignore corrupted cache
+    }
+  }, [cacheKey])
 
   useEffect(() => {
     async function fetchProfile() {
@@ -25,8 +43,11 @@ export default function CounselPage() {
         const token = await getToken()
         const data = await getProfile(token)
         setProfile(data)
-      } catch {
-        setProfileError('Could not load profile. Please try again.')
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : ''
+        if (!msg.includes('404') && !msg.toLowerCase().includes('not found')) {
+          setProfileError('Could not load profile. Please try again.')
+        }
       } finally {
         setProfileLoading(false)
       }
@@ -37,29 +58,26 @@ export default function CounselPage() {
   async function handleGetAdvice() {
     setCounselLoading(true)
     setError(null)
-    setResult(null)
-    setStreamingText('')
     try {
       const token = await getToken()
-      const finalText = await streamCounsel(token, (accumulated) => {
-        setStreamingText(accumulated)
-      })
-
-      // Parse the final JSON response (strip markdown fences if present)
-      let jsonText = finalText.trim()
-      if (jsonText.startsWith('```')) {
-        const lines = jsonText.split('\n')
-        jsonText = lines.slice(1, lines[lines.length - 1].trim() === '```' ? -1 : undefined).join('\n')
+      const data = await getCounsel(token)
+      setResult(data)
+      const now = new Date()
+      setCachedAt(now)
+      if (cacheKey) {
+        localStorage.setItem(cacheKey, JSON.stringify({ result: data, savedAt: now.toISOString() }))
       }
-      const parsed: CounselResponse = JSON.parse(jsonText)
-      setStreamingText(null)
-      setResult(parsed)
     } catch (err) {
-      setStreamingText(null)
       setError(err instanceof Error ? err.message : 'Failed to get career advice')
     } finally {
       setCounselLoading(false)
     }
+  }
+
+  function handleClearCache() {
+    if (cacheKey) localStorage.removeItem(cacheKey)
+    setResult(null)
+    setCachedAt(null)
   }
 
   return (
@@ -143,41 +161,47 @@ export default function CounselPage() {
       </div>
 
       {/* Action Button */}
-      <button
-        onClick={handleGetAdvice}
-        disabled={counselLoading || profileLoading || profileError !== null}
-        className="w-full py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6 flex items-center justify-center gap-2"
-      >
-        {counselLoading ? (
-          <>
-            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            Generating advice...
-          </>
-        ) : (
-          'Get Career Advice'
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={handleGetAdvice}
+          disabled={counselLoading || profileLoading}
+          className="flex-1 py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {counselLoading ? (
+            <>
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Generating advice...
+            </>
+          ) : result ? (
+            'Regenerate Advice'
+          ) : (
+            'Get Career Advice'
+          )}
+        </button>
+        {result && (
+          <button
+            onClick={handleClearCache}
+            className="px-4 py-3 border border-gray-200 text-gray-500 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
         )}
-      </button>
+      </div>
+
+      {/* Cache timestamp */}
+      {cachedAt && !counselLoading && (
+        <p className="text-xs text-gray-400 mb-4 -mt-2">
+          Last generated {cachedAt.toLocaleDateString()} at {cachedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Saved locally
+        </p>
+      )}
 
       {/* Error */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600 mb-6">
           {error}
-        </div>
-      )}
-
-      {/* Streaming display */}
-      {streamingText !== null && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            Generating your advice...
-          </p>
-          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-mono">
-            {streamingText}
-            <span className="inline-block w-0.5 h-4 bg-blue-600 ml-0.5 animate-pulse align-text-bottom" />
-          </div>
         </div>
       )}
 

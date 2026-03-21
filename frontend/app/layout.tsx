@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { ClerkProvider, UserButton, SignedIn, SignedOut } from '@clerk/nextjs'
 import Link from 'next/link'
 import ThemeToggle from '@/components/ThemeToggle'
+import { PostSignupRoleSync } from '@/components/PostSignupRoleSync'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -60,6 +61,12 @@ export default function RootLayout({
                       Resume
                     </Link>
                     <Link
+                      href="/quiz"
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-all"
+                    >
+                      Cultural Guide
+                    </Link>
+                    <Link
                       href="/jobs/post"
                       className="ml-2 px-3.5 py-1.5 text-sm font-semibold text-white bg-blue-800 hover:bg-blue-700 rounded-md transition-all"
                     >
@@ -85,6 +92,7 @@ export default function RootLayout({
             </div>
           </nav>
 
+          <PostSignupRoleSync />
           <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
           </main>

@@ -6,13 +6,24 @@ import anthropic
 
 from schemas import (
     CounselResponse,
+    FirstWeekPrepResponse,
+    GlossaryTerm,
     InterviewPrepResponse,
     InterviewQuestion,
+    JargonTranslationResponse,
     JobOut,
     ProfileOut,
+    QuizEvaluationResponse,
+    QuizQuestion,
     SkillsGapResponse,
     SalaryInsightResponse,
 )
+
+
+def _lang_prefix(language: str) -> str:
+    if language and language.lower() != "english":
+        return f"Always respond in {language}. "
+    return ""
 
 
 def _build_prompt(profile: ProfileOut, matching_jobs: List[JobOut]) -> str:
@@ -115,23 +126,7 @@ def _parse_response(raw_text: str, matching_jobs: List[JobOut]) -> CounselRespon
     )
 
 
-def get_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]) -> CounselResponse:
-    """
-    Call the Claude API to generate career counseling for the given profile.
-
-    Parameters
-    ----------
-    profile:
-        The candidate's full profile pulled from the database.
-    matching_jobs:
-        Jobs pre-filtered by the caller to be relevant to the profile.
-
-    Returns
-    -------
-    CounselResponse
-        Structured counseling output with a roadmap, matched jobs, and
-        board-level recommendations.
-    """
+def get_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut], language: str = "English") -> CounselResponse:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -141,7 +136,7 @@ def get_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]) -> Coun
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=(
-            "You are an expert career counselor helping people find jobs and grow their careers. "
+            f"{_lang_prefix(language)}You are an expert career counselor helping people find jobs and grow their careers. "
             "Return ONLY valid JSON — no prose, no markdown, no explanations outside the JSON object."
         ),
         messages=[
@@ -162,11 +157,7 @@ def _strip_fences(text: str) -> str:
     return text
 
 
-def analyze_skills_gap(profile: ProfileOut, job: JobOut) -> SkillsGapResponse:
-    """
-    Call Claude to identify the gap between the candidate's skills and
-    the skills required for a specific job.
-    """
+def analyze_skills_gap(profile: ProfileOut, job: JobOut, language: str = "English") -> SkillsGapResponse:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -189,7 +180,7 @@ Analyse the skills gap and return ONLY a JSON object with exactly these keys:
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
-        system="You are a career advisor. Return ONLY valid JSON.",
+        system=f"{_lang_prefix(language)}You are a career advisor. Return ONLY valid JSON.",
         messages=[{"role": "user", "content": user_prompt}],
     )
 
@@ -214,10 +205,7 @@ Analyse the skills gap and return ONLY a JSON object with exactly these keys:
     )
 
 
-def get_salary_insight(role: str, location: str, skills: List[str]) -> SalaryInsightResponse:
-    """
-    Call Claude to estimate a salary range for a given role, location, and skills.
-    """
+def get_salary_insight(role: str, location: str, skills: List[str], language: str = "English") -> SalaryInsightResponse:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -240,7 +228,7 @@ Estimate the annual USD salary range for this role and return ONLY a JSON object
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
-        system="You are a compensation analyst. Return ONLY valid JSON.",
+        system=f"{_lang_prefix(language)}You are a compensation analyst. Return ONLY valid JSON.",
         messages=[{"role": "user", "content": user_prompt}],
     )
 
@@ -270,12 +258,6 @@ Estimate the annual USD salary range for this role and return ONLY a JSON object
 
 
 def parse_resume(resume_text: str) -> dict:
-    """
-    Call Claude to extract structured career data from raw resume text.
-
-    Returns a dict with keys:
-        skills, education, experience, certifications, target_roles
-    """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -323,11 +305,7 @@ Extract structured career data and return ONLY a JSON object with exactly these 
     }
 
 
-def generate_cover_letter(profile: ProfileOut, job: JobOut) -> str:
-    """
-    Call Claude to generate a professional cover letter for the given
-    profile and job. Returns plain text (3-4 paragraphs).
-    """
+def generate_cover_letter(profile: ProfileOut, job: JobOut, language: str = "English") -> str:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -369,7 +347,7 @@ Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date l
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=(
-            "You are a professional career writer. "
+            f"{_lang_prefix(language)}You are a professional career writer. "
             "Write concise, compelling cover letters tailored to the role."
         ),
         messages=[{"role": "user", "content": user_prompt}],
@@ -378,11 +356,7 @@ Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date l
     return message.content[0].text if message.content else ""
 
 
-async def stream_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]) -> AsyncGenerator[str, None]:
-    """
-    Async generator that streams career counseling text token by token.
-    Yields raw text chunks from Claude.
-    """
+async def stream_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut], language: str = "English") -> AsyncGenerator[str, None]:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     async_client = anthropic.AsyncAnthropic(api_key=api_key) if api_key else anthropic.AsyncAnthropic()
 
@@ -392,7 +366,7 @@ async def stream_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=(
-            "You are an expert career counselor helping people find jobs and grow their careers. "
+            f"{_lang_prefix(language)}You are an expert career counselor helping people find jobs and grow their careers. "
             "Return ONLY valid JSON — no prose, no markdown, no explanations outside the JSON object."
         ),
         messages=[{"role": "user", "content": user_prompt}],
@@ -401,11 +375,7 @@ async def stream_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]
             yield text
 
 
-async def stream_cover_letter(job: JobOut, profile: ProfileOut) -> AsyncGenerator[str, None]:
-    """
-    Async generator that streams cover letter text token by token.
-    Yields raw text chunks from Claude.
-    """
+async def stream_cover_letter(job: JobOut, profile: ProfileOut, language: str = "English") -> AsyncGenerator[str, None]:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     async_client = anthropic.AsyncAnthropic(api_key=api_key) if api_key else anthropic.AsyncAnthropic()
 
@@ -447,7 +417,7 @@ Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date l
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=(
-            "You are a professional career writer. "
+            f"{_lang_prefix(language)}You are a professional career writer. "
             "Write concise, compelling cover letters tailored to the role."
         ),
         messages=[{"role": "user", "content": user_prompt}],
@@ -456,11 +426,7 @@ Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date l
             yield text
 
 
-def generate_interview_prep(job: JobOut, profile: ProfileOut) -> InterviewPrepResponse:
-    """
-    Call Claude to generate interview questions with answer frameworks
-    tailored to the job and candidate's background.
-    """
+def generate_interview_prep(job: JobOut, profile: ProfileOut, language: str = "English") -> InterviewPrepResponse:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
 
@@ -505,7 +471,7 @@ Return ONLY a JSON object with exactly this structure:
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2048,
-        system="You are an expert interview coach. Return ONLY valid JSON.",
+        system=f"{_lang_prefix(language)}You are an expert interview coach. Return ONLY valid JSON.",
         messages=[{"role": "user", "content": user_prompt}],
     )
 
@@ -530,3 +496,201 @@ Return ONLY a JSON object with exactly this structure:
         for q in data.get("questions", [])
     ]
     return InterviewPrepResponse(questions=questions)
+
+
+def translate_jargon(description: str, language: str = "English") -> JargonTranslationResponse:
+    """Identify Canadian/English workplace jargon and return annotated text + glossary."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    user_prompt = f"""Job posting text:
+---
+{description}
+---
+
+Identify any Canadian/English workplace jargon, slang, or culturally specific phrases in this job posting.
+Return ONLY a JSON object with exactly these keys:
+{{
+  "translated": "<the original text with jargon terms annotated inline like: term [plain explanation]>",
+  "glossary": [
+    {{"term": "circle back", "explanation": "to follow up or revisit a topic later"}},
+    ...
+  ]
+}}
+
+If there is no jargon, return the original text unchanged with an empty glossary array."""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2048,
+        system=(
+            f"{_lang_prefix(language)}You are a cultural language expert helping immigrants understand "
+            "Canadian/English workplace language. Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return JargonTranslationResponse(
+            original=description,
+            translated=description,
+            glossary=[],
+        )
+
+    glossary = [
+        GlossaryTerm(term=g.get("term", ""), explanation=g.get("explanation", ""))
+        for g in data.get("glossary", [])
+    ]
+    return JargonTranslationResponse(
+        original=description,
+        translated=data.get("translated", description),
+        glossary=glossary,
+    )
+
+
+def get_first_week_prep(job: JobOut, language: str = "English") -> FirstWeekPrepResponse:
+    """Generate 5 practical cultural tips for an immigrant's first week at this job."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    user_prompt = f"""Job:
+  Title: {job.title}
+  Location: {job.location}
+  Description: {job.description}
+
+Generate exactly 5 hyper-practical tips to help an immigrant worker prepare for their first week at this Canadian workplace. Cover topics like: what to wear, how to introduce yourself, what to bring, meeting etiquette, communication norms.
+
+Return ONLY a JSON object:
+{{
+  "tips": ["tip 1", "tip 2", "tip 3", "tip 4", "tip 5"]
+}}"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=(
+            f"{_lang_prefix(language)}You are a cultural integration advisor helping immigrants succeed "
+            "in Canadian workplaces. Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+        tips = data.get("tips", [])
+    except json.JSONDecodeError:
+        tips = [
+            "Dress business-casual unless told otherwise — smart jeans and a clean shirt are usually fine.",
+            "Arrive 5-10 minutes early on your first day to show punctuality.",
+            "Bring a notepad and pen to take notes during onboarding.",
+            "Introduce yourself with a firm handshake and a brief sentence about your background.",
+            "Ask questions freely — Canadian workplaces value curiosity and initiative.",
+        ]
+
+    return FirstWeekPrepResponse(tips=tips)
+
+
+def generate_quiz_question(category: str, language: str = "English") -> QuizQuestion:
+    """Generate a Canadian workplace culture quiz question with 4 options."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    user_prompt = f"""Generate a multiple-choice quiz question about Canadian workplace culture in the category: "{category}".
+
+The question should help immigrants understand Canadian work norms while respecting diverse cultural backgrounds.
+
+Return ONLY a JSON object:
+{{
+  "question": "...",
+  "options": ["option A", "option B", "option C", "option D"],
+  "category": "{category}"
+}}
+
+Make sure exactly one option is clearly correct based on typical Canadian workplace norms."""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=512,
+        system=(
+            f"{_lang_prefix(language)}You are a Canadian workplace culture educator. "
+            "Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return QuizQuestion(
+            question="In a Canadian workplace, when is it appropriate to arrive for a meeting?",
+            options=["15 minutes late", "Exactly on time or 1-2 minutes early", "30 minutes early", "Whenever you feel ready"],
+            category=category,
+        )
+
+    return QuizQuestion(
+        question=data.get("question", ""),
+        options=data.get("options", []),
+        category=data.get("category", category),
+    )
+
+
+def evaluate_quiz_answer(question: str, options: List[str], selected_answer: str, language: str = "English") -> QuizEvaluationResponse:
+    """Evaluate a quiz answer and provide cultural context feedback."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    options_text = "\n".join(f"- {o}" for o in options)
+
+    user_prompt = f"""Quiz question: {question}
+
+Options:
+{options_text}
+
+The user selected: "{selected_answer}"
+
+Evaluate whether this answer is correct for a Canadian workplace context.
+Return ONLY a JSON object:
+{{
+  "correct": true or false,
+  "correct_answer": "<the correct option text>",
+  "feedback": "<2-3 sentences explaining why this is correct/incorrect and providing helpful cultural context>"
+}}"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=512,
+        system=(
+            f"{_lang_prefix(language)}You are a Canadian workplace culture educator giving constructive, "
+            "encouraging feedback. Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return QuizEvaluationResponse(
+            correct=False,
+            correct_answer=options[0] if options else selected_answer,
+            feedback="Unable to evaluate answer at this time. Please try again.",
+        )
+
+    return QuizEvaluationResponse(
+        correct=bool(data.get("correct", False)),
+        correct_answer=data.get("correct_answer", ""),
+        feedback=data.get("feedback", ""),
+    )

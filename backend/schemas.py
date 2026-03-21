@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ---------------------------------------------------------------------------
@@ -14,6 +14,7 @@ from pydantic import BaseModel, EmailStr, Field
 class BusinessCreate(BaseModel):
     name: str
     contact_email: str
+    business_number: Optional[str] = None
 
 
 class BusinessOut(BaseModel):
@@ -21,6 +22,7 @@ class BusinessOut(BaseModel):
     clerk_user_id: str
     name: str
     contact_email: str
+    business_number: Optional[str] = None
     verified: bool
     created_at: datetime
 
@@ -83,6 +85,7 @@ class ProfileCreate(BaseModel):
     certifications: List[str] = Field(default_factory=list)
     experience: List[Dict[str, Any]] = Field(default_factory=list)
     target_roles: List[str] = Field(default_factory=list)
+    preferred_language: str = "English"
 
 
 class ProfileOut(BaseModel):
@@ -93,6 +96,7 @@ class ProfileOut(BaseModel):
     certifications: List[str]
     experience: List[Dict[str, Any]]
     target_roles: List[str]
+    preferred_language: str = "English"
     updated_at: datetime
 
     model_config = {"from_attributes": True}
@@ -173,3 +177,73 @@ class InterviewQuestion(BaseModel):
 
 class InterviewPrepResponse(BaseModel):
     questions: List[InterviewQuestion]
+
+
+# ---------------------------------------------------------------------------
+# Jargon translation schemas
+# ---------------------------------------------------------------------------
+
+class GlossaryTerm(BaseModel):
+    term: str
+    explanation: str
+
+
+class JargonTranslationResponse(BaseModel):
+    original: str
+    translated: str
+    glossary: List[GlossaryTerm]
+
+
+class JargonTranslateRequest(BaseModel):
+    language: Optional[str] = "English"
+
+
+# ---------------------------------------------------------------------------
+# First week prep schemas
+# ---------------------------------------------------------------------------
+
+class FirstWeekPrepResponse(BaseModel):
+    tips: List[str]
+
+
+# ---------------------------------------------------------------------------
+# Quiz schemas
+# ---------------------------------------------------------------------------
+
+class QuizQuestion(BaseModel):
+    question: str
+    options: List[str]  # 4 options
+    category: str
+
+
+class QuizGenerateRequest(BaseModel):
+    category: Optional[str] = None
+    language: Optional[str] = "English"
+
+
+class QuizEvaluateRequest(BaseModel):
+    question: str
+    options: List[str]
+    selected_answer: str
+    language: Optional[str] = "English"
+
+
+class QuizEvaluationResponse(BaseModel):
+    correct: bool
+    correct_answer: str
+    feedback: str
+
+
+# ---------------------------------------------------------------------------
+# Auth schemas
+# ---------------------------------------------------------------------------
+
+class SetRolePayload(BaseModel):
+    role: str  # "worker" or "business"
+
+    @field_validator('role')
+    @classmethod
+    def role_must_be_valid(cls, v: str) -> str:
+        if v not in ('worker', 'business'):
+            raise ValueError("role must be 'worker' or 'business'")
+        return v

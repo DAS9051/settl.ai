@@ -76,8 +76,9 @@ def run_counsel(
             out.business_name = business.name
         job_schemas.append(out)
     profile_schema = ProfileOut.model_validate(profile)
+    language = getattr(profile, "preferred_language", "English") or "English"
 
-    result: CounselResponse = get_career_counsel(profile_schema, job_schemas)
+    result: CounselResponse = get_career_counsel(profile_schema, job_schemas, language=language)
     return result
 
 
@@ -107,10 +108,11 @@ async def run_counsel_stream(
             out.business_name = business.name
         job_schemas.append(out)
     profile_schema = ProfileOut.model_validate(profile)
+    language = getattr(profile, "preferred_language", "English") or "English"
 
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
-            async for chunk in stream_career_counsel(profile_schema, job_schemas):
+            async for chunk in stream_career_counsel(profile_schema, job_schemas, language=language):
                 yield f"data: {chunk}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as exc:
