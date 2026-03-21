@@ -15,7 +15,7 @@ const emptyExperience = (): ExperienceEntry => ({
 })
 
 const inputClass =
-  'w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600'
+  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
 
 export default function ProfilePage() {
   const { getToken } = useAuth()
@@ -106,7 +106,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+      <div className="flex items-center justify-center py-16 text-gray-400">
         <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -119,23 +119,23 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">My Profile</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Keep your profile up to date for better AI career advice</p>
+        <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+        <p className="text-sm text-gray-500 mt-1">Keep your profile up to date for better AI career advice</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg p-4 text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600">{error}</div>
         )}
         {success && (
-          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-lg p-4 text-sm text-green-700 dark:text-green-400">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-700">
             Profile saved successfully!
           </div>
         )}
 
         {/* Skills */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Skills</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Skills</h2>
           <input
             type="text"
             value={skillsInput}
@@ -146,8 +146,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Target Roles */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Target Roles</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Target Roles</h2>
           <input
             type="text"
             value={targetRolesInput}
@@ -158,8 +158,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Certifications */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Certifications</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Certifications</h2>
           <input
             type="text"
             value={certificationsInput}
@@ -170,25 +170,25 @@ export default function ProfilePage() {
         </div>
 
         {/* Education */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Education</h2>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Education</h2>
             <button
               type="button"
               onClick={addEducation}
-              className="text-sm text-blue-700 dark:text-blue-400 font-medium hover:underline"
+              className="text-sm text-blue-700 font-medium hover:underline"
             >
               + Add
             </button>
           </div>
           <div className="space-y-4">
             {education.map((entry, idx) => (
-              <div key={idx} className="border border-gray-100 dark:border-gray-700 rounded-lg p-4 relative bg-gray-50/50 dark:bg-gray-900/30">
+              <div key={idx} className="border border-gray-100 rounded-lg p-4 relative bg-gray-50/50">
                 {education.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeEducation(idx)}
-                    className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs"
+                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xs"
                   >
                     Remove
                   </button>
@@ -222,25 +222,25 @@ export default function ProfilePage() {
         </div>
 
         {/* Experience */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Experience</h2>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Experience</h2>
             <button
               type="button"
               onClick={addExperience}
-              className="text-sm text-blue-700 dark:text-blue-400 font-medium hover:underline"
+              className="text-sm text-blue-700 font-medium hover:underline"
             >
               + Add
             </button>
           </div>
           <div className="space-y-4">
             {experience.map((entry, idx) => (
-              <div key={idx} className="border border-gray-100 dark:border-gray-700 rounded-lg p-4 relative bg-gray-50/50 dark:bg-gray-900/30">
+              <div key={idx} className="border border-gray-100 rounded-lg p-4 relative bg-gray-50/50">
                 {experience.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeExperience(idx)}
-                    className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-xs"
+                    className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xs"
                   >
                     Remove
                   </button>
@@ -290,7 +290,7 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-3 bg-blue-800 dark:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? 'Saving...' : 'Save Profile'}
         </button>

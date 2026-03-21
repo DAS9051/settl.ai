@@ -3,8 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  :root { color-scheme: light; }
-  .dark { color-scheme: dark; }
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+    /* Slate base + subtle blue bias — reads cleaner than flat purple */
+    --dm-bg: #0f172a;
+    --dm-surface: #1e293b;
+    --dm-border: #334155;
+    --dm-muted: #94a3b8;
+  }
 
   html {
     -webkit-font-smoothing: antialiased;
@@ -13,5 +23,79 @@
 
   body {
     @apply transition-colors duration-200;
+  }
+
+  /* Dark mode overrides using CSS variables */
+  .dark body {
+    background-color: var(--dm-bg);
+    color: #f8fafc;
+  }
+
+  .dark nav {
+    background-color: color-mix(in srgb, var(--dm-surface) 80%, transparent) !important;
+    border-color: var(--dm-border) !important;
+  }
+
+  /* Cards and panels */
+  .dark .bg-white {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+  }
+
+  /* Inputs */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: var(--dm-bg) !important;
+    border-color: var(--dm-border) !important;
+    color: #f8fafc !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: var(--dm-muted) !important;
+  }
+
+  /* Text softening */
+  .dark .text-gray-500,
+  .dark .text-gray-600 {
+    color: var(--dm-muted) !important;
+  }
+
+  .dark .text-gray-900 {
+    color: #f8fafc !important;
+  }
+
+  .dark .text-gray-700,
+  .dark .text-gray-800 {
+    color: #cbd5e1 !important;
+  }
+
+  /* Borders */
+  .dark .border-gray-200,
+  .dark .border-gray-300 {
+    border-color: var(--dm-border) !important;
+  }
+
+  /* Skill/tag badges */
+  .dark .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    border-color: var(--dm-border) !important;
+  }
+
+  .dark .bg-gray-50,
+  .dark .bg-gray-100 {
+    background-color: var(--dm-surface) !important;
+  }
+
+  /* Green/red alert banners */
+  .dark .bg-green-50 {
+    background-color: rgba(34, 197, 94, 0.12) !important;
+    border-color: rgba(34, 197, 94, 0.25) !important;
+  }
+
+  .dark .bg-red-50 {
+    background-color: rgba(248, 113, 113, 0.12) !important;
+    border-color: rgba(248, 113, 113, 0.25) !important;
   }
 }

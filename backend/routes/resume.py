@@ -3,7 +3,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
@@ -300,7 +300,7 @@ async def import_resume(
         profile.certifications = profile_data.certifications
         profile.experience = profile_data.experience
         profile.target_roles = profile_data.target_roles
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(timezone.utc)
     else:
         profile = Profile(
             clerk_user_id=clerk_user_id,
@@ -309,7 +309,7 @@ async def import_resume(
             certifications=profile_data.certifications,
             experience=profile_data.experience,
             target_roles=profile_data.target_roles,
-            updated_at=datetime.utcnow(),
+            updated_at=datetime.now(timezone.utc),
         )
         db.add(profile)
 

@@ -6,29 +6,29 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative text-center py-24 w-full overflow-hidden">
         {/* Subtle background gradient */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/60 dark:from-gray-900 to-transparent rounded-3xl" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/60 to-transparent rounded-3xl" />
 
-        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900 text-blue-700 dark:text-blue-300 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">
+        <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">
           Powered by Claude AI
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-gray-50 mb-5 leading-tight tracking-tight">
+        <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-5 leading-tight tracking-tight">
           Your career,{' '}
-          <span className="text-blue-800 dark:text-blue-400">sorted.</span>
+          <span className="text-blue-800">sorted.</span>
         </h1>
-        <p className="text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-10 leading-relaxed">
+        <p className="text-lg text-gray-500 max-w-lg mx-auto mb-10 leading-relaxed">
           Browse local job listings and get a personalised AI career roadmap — all in one place.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/jobs"
-            className="px-7 py-3 bg-blue-800 dark:bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-all shadow-sm text-sm"
+            className="px-7 py-3 bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm text-sm"
           >
             Browse Jobs
           </Link>
           <Link
             href="/counsel"
-            className="px-7 py-3 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:border-blue-300 dark:hover:border-blue-600 hover:text-blue-800 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all text-sm"
+            className="px-7 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-blue-300 hover:text-blue-800 hover:bg-blue-50 transition-all text-sm"
           >
             Get Career Advice
           </Link>
@@ -82,23 +82,23 @@ export default function HomePage() {
           <Link
             key={title}
             href={href}
-            className="group flex flex-col gap-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all"
+            className="group flex flex-col gap-3 bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md hover:border-blue-200 transition-all"
           >
-            <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/60 transition-colors">
+            <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 text-blue-700 group-hover:bg-blue-100 transition-colors">
               {icon}
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-blue-800 dark:group-hover:text-blue-400 transition-colors">
+              <h2 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-800 transition-colors">
                 {title}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">{desc}</p>
+              <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
             </div>
           </Link>
         ))}
       </section>
 
       {/* Footer blurb */}
-      <p className="mt-16 text-xs text-gray-400 dark:text-gray-600 tracking-wide">
+      <p className="mt-16 text-xs text-gray-400 tracking-wide">
         settl.ai · Powered by Anthropic Claude
       </p>
     </div>

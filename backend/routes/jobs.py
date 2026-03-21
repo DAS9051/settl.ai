@@ -17,6 +17,15 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "hackathon-admin-secret")
 
 
+def _job_to_out(job: Job, db: Session) -> JobOut:
+    """Convert a Job ORM object to JobOut, populating business_name."""
+    out = JobOut.model_validate(job)
+    business = db.query(Business).filter(Business.id == job.business_id).first()
+    if business:
+        out.business_name = business.name
+    return out
+
+
 @router.get("", response_model=JobListOut)
 def list_jobs(
     skill: Optional[str] = Query(None, description="Filter by required skill (case-insensitive substring)"),
@@ -45,7 +54,7 @@ def list_jobs(
     total = len(all_jobs)
     paged = all_jobs[offset: offset + limit]
 
-    return JobListOut(jobs=[JobOut.model_validate(j) for j in paged], total=total)
+    return JobListOut(jobs=[_job_to_out(j, db) for j in paged], total=total)
 
 
 @router.post("", response_model=JobOut, status_code=status.HTTP_201_CREATED)
@@ -81,7 +90,7 @@ def create_job(
     db.add(job)
     db.commit()
     db.refresh(job)
-    return JobOut.model_validate(job)
+    return _job_to_out(job, db)
 
 
 @router.get("/{job_id}", response_model=JobOut)
@@ -93,7 +102,7 @@ def get_job(
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
-    return JobOut.model_validate(job)
+    return _job_to_out(job, db)
 
 
 @router.post("/{job_id}/skills-gap", response_model=SkillsGapResponse)
@@ -118,7 +127,7 @@ def skills_gap(
             detail="Profile not found. Please create your profile via PUT /api/profile first.",
         )
 
-    job_schema = JobOut.model_validate(job)
+    job_schema = _job_to_out(job, db)
     profile_schema = ProfileOut.model_validate(profile)
     return analyze_skills_gap(profile_schema, job_schema)
 
@@ -147,4 +156,4 @@ def toggle_verify_job(
     job.verified = not job.verified
     db.commit()
     db.refresh(job)
-    return JobOut.model_validate(job)
+    return _job_to_out(job, db)

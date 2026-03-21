@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
+from models.business import Business
 from models.job import Job
 from models.profile import Profile
 from schemas import CounselResponse, JobOut, ProfileOut
@@ -66,7 +67,13 @@ def run_counsel(
         )
 
     matching_jobs = _jobs_matching_profile(profile, db)
-    job_schemas = [JobOut.model_validate(j) for j in matching_jobs]
+    job_schemas = []
+    for j in matching_jobs:
+        out = JobOut.model_validate(j)
+        business = db.query(Business).filter(Business.id == j.business_id).first()
+        if business:
+            out.business_name = business.name
+        job_schemas.append(out)
     profile_schema = ProfileOut.model_validate(profile)
 
     result: CounselResponse = get_career_counsel(profile_schema, job_schemas)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -44,7 +44,7 @@ def upsert_profile(
         profile.certifications = payload.certifications
         profile.experience = payload.experience
         profile.target_roles = payload.target_roles
-        profile.updated_at = datetime.utcnow()
+        profile.updated_at = datetime.now(timezone.utc)
     else:
         profile = Profile(
             clerk_user_id=clerk_user_id,
@@ -53,7 +53,7 @@ def upsert_profile(
             certifications=payload.certifications,
             experience=payload.experience,
             target_roles=payload.target_roles,
-            updated_at=datetime.utcnow(),
+            updated_at=datetime.now(timezone.utc),
         )
         db.add(profile)
 

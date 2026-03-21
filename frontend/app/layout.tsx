@@ -20,14 +20,14 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" className={inter.variable}>
-        <body className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans antialiased">
-          <nav className="bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800 sticky top-0 z-50">
+        <body className="min-h-screen bg-gray-50 text-gray-900 font-sans antialiased">
+          <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/80 sticky top-0 z-50">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-15 py-3">
                 {/* Logo */}
                 <Link
                   href="/"
-                  className="text-xl font-bold tracking-tight text-blue-800 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  className="text-xl font-bold tracking-tight text-blue-800 hover:text-blue-700 transition-colors"
                 >
                   settl.ai
                 </Link>
@@ -36,32 +36,32 @@ export default function RootLayout({
                 <div className="flex items-center gap-1">
                   <Link
                     href="/jobs"
-                    className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-800 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all"
+                    className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-all"
                   >
                     Jobs
                   </Link>
                   <SignedIn>
                     <Link
                       href="/counsel"
-                      className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-800 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all"
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-all"
                     >
                       Counsel
                     </Link>
                     <Link
                       href="/profile"
-                      className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-800 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all"
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-all"
                     >
                       Profile
                     </Link>
                     <Link
                       href="/resume"
-                      className="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-800 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-all"
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-all"
                     >
                       Resume
                     </Link>
                     <Link
                       href="/jobs/post"
-                      className="ml-2 px-3.5 py-1.5 text-sm font-semibold text-white bg-blue-800 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-all"
+                      className="ml-2 px-3.5 py-1.5 text-sm font-semibold text-white bg-blue-800 hover:bg-blue-700 rounded-md transition-all"
                     >
                       Post a Job
                     </Link>
@@ -69,7 +69,7 @@ export default function RootLayout({
                   <SignedOut>
                     <Link
                       href="/sign-in"
-                      className="ml-2 px-3.5 py-1.5 text-sm font-semibold text-white bg-blue-800 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-all"
+                      className="ml-2 px-3.5 py-1.5 text-sm font-semibold text-white bg-blue-800 hover:bg-blue-700 rounded-md transition-all"
                     >
                       Sign In
                     </Link>

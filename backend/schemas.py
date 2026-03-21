@@ -42,6 +42,7 @@ class JobCreate(BaseModel):
 class JobOut(BaseModel):
     id: uuid.UUID
     business_id: uuid.UUID
+    business_name: Optional[str] = None
     title: str
     description: str
     location: str
@@ -71,7 +72,8 @@ class EducationEntry(BaseModel):
 class ExperienceEntry(BaseModel):
     company: str
     role: str
-    years: Optional[str] = None
+    start_year: Optional[str] = None
+    end_year: Optional[str] = None
     description: Optional[str] = None
 
 
