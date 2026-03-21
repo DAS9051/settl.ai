@@ -1,0 +1,109 @@
+import os
+from typing import Dict, Any, List, Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models.business import Business
+from models.job import Job
+from schemas import JobCreate, JobListOut, JobOut
+from services.auth import get_current_user_dep
+
+router = APIRouter(prefix="/jobs", tags=["jobs"])
+
+ADMIN_KEY = os.environ.get("ADMIN_KEY", "hackathon-admin-secret")
+
+
+@router.get("", response_model=JobListOut)
+def list_jobs(
+    skill: Optional[str] = Query(None, description="Filter by required skill (case-insensitive substring)"),
+    location: Optional[str] = Query(None, description="Filter by location (case-insensitive substring)"),
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    """List all verified jobs. Public endpoint — no authentication required."""
+    query = db.query(Job).filter(Job.verified == True)
+
+    if location:
+        query = query.filter(Job.location.ilike(f"%{location}%"))
+
+    # Fetch all matching location/verified rows then filter by skill in Python
+    # (avoids DB-specific JSON operators while staying portable)
+    all_jobs: List[Job] = query.order_by(Job.created_at.desc()).all()
+
+    if skill:
+        skill_lower = skill.lower()
+        all_jobs = [
+            j for j in all_jobs
+            if any(skill_lower in s.lower() for s in (j.skills_required or []))
+        ]
+
+    total = len(all_jobs)
+    paged = all_jobs[offset: offset + limit]
+
+    return JobListOut(jobs=[JobOut.model_validate(j) for j in paged], total=total)
+
+
+@router.post("", response_model=JobOut, status_code=status.HTTP_201_CREATED)
+def create_job(
+    payload: JobCreate,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a new job posting.  Requires a valid Clerk JWT.
+    The posting is auto-verified for hackathon purposes.
+    """
+    clerk_user_id: str = current_user.get("sub", "")
+
+    # Ensure the user has a registered business
+    business = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
+    if not business:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must register a business before posting jobs.",
+        )
+
+    job = Job(
+        business_id=business.id,
+        title=payload.title,
+        description=payload.description,
+        location=payload.location,
+        salary_range=payload.salary_range,
+        skills_required=payload.skills_required,
+        # Hackathon shortcut: auto-verify all postings.
+        verified=True,
+    )
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    return JobOut.model_validate(job)
+
+
+@router.patch("/{job_id}/verify", response_model=JobOut)
+def toggle_verify_job(
+    job_id: str,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
+    db: Session = Depends(get_db),
+):
+    """
+    Toggle the verified flag on a job.
+    Protected by a simple secret header (X-Admin-Key) instead of full auth
+    for hackathon simplicity.
+    """
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid or missing X-Admin-Key header.",
+        )
+
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    job.verified = not job.verified
+    db.commit()
+    db.refresh(job)
+    return JobOut.model_validate(job)
