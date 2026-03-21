@@ -104,6 +104,38 @@ export default function ProfilePage() {
     setExperience((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  // Profile completeness calculation (based on live form state, not saved data)
+  const skills = csvToArray(skillsInput)
+  const certifications = csvToArray(certificationsInput)
+  const targetRoles = csvToArray(targetRolesInput)
+  const validEducation = education.filter((e) => e.school.trim() || e.degree.trim())
+  const validExperience = experience.filter((e) => e.company.trim() || e.role.trim())
+
+  const completenessFields = [
+    skills.length > 0,
+    certifications.length > 0,
+    targetRoles.length > 0,
+    validEducation.length > 0,
+    validExperience.length > 0,
+  ]
+  const filledCount = completenessFields.filter(Boolean).length
+  const totalFields = completenessFields.length
+  const completenessPercent = Math.round((filledCount / totalFields) * 100)
+
+  const missingLabels: string[] = []
+  if (skills.length === 0) missingLabels.push('skills')
+  if (certifications.length === 0) missingLabels.push('certifications')
+  if (targetRoles.length === 0) missingLabels.push('target roles')
+  if (validEducation.length === 0) missingLabels.push('education')
+  if (validExperience.length === 0) missingLabels.push('experience')
+
+  const barColor =
+    completenessPercent === 100
+      ? 'bg-green-500'
+      : completenessPercent >= 50
+      ? 'bg-yellow-400'
+      : 'bg-red-500'
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-gray-400">
@@ -122,6 +154,40 @@ export default function ProfilePage() {
         <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
         <p className="text-sm text-gray-500 mt-1">Keep your profile up to date for better AI career advice</p>
       </div>
+
+      {/* Profile Completeness Bar */}
+      {!loading && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-gray-700">Profile Completeness</span>
+            <span
+              className={`text-sm font-bold ${
+                completenessPercent === 100
+                  ? 'text-green-600'
+                  : completenessPercent >= 50
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+              }`}
+            >
+              {completenessPercent}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+            <div
+              className={`${barColor} h-2.5 rounded-full transition-all duration-500`}
+              style={{ width: `${completenessPercent}%` }}
+            />
+          </div>
+          {missingLabels.length > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              Add {missingLabels.join(', ')} to improve your matches
+            </p>
+          )}
+          {completenessPercent === 100 && (
+            <p className="text-xs text-green-600 mt-2 font-medium">Your profile is complete!</p>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (

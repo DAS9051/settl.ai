@@ -9,6 +9,7 @@ import type {
   SkillsGapResponse,
   SalaryInsightResponse,
   CoverLetterResponse,
+  InterviewPrepResponse,
 } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -193,6 +194,93 @@ export async function generateCoverLetter(
 
   if (!res.ok) {
     throw new Error(`Failed to generate cover letter: ${res.statusText}`)
+  }
+
+  return res.json()
+}
+
+// Streaming helper: reads SSE chunks from a ReadableStream, calls onChunk with each text piece,
+// and resolves with the final accumulated text when [DONE] is received.
+export async function readSSEStream(
+  response: Response,
+  onChunk: (text: string) => void
+): Promise<string> {
+  if (!response.body) throw new Error('No response body')
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let accumulated = ''
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const parts = buffer.split('\n\n')
+    buffer = parts.pop() ?? ''
+
+    for (const part of parts) {
+      for (const line of part.split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed.startsWith('data:')) continue
+        const data = trimmed.slice(5).trim()
+        if (data === '[DONE]') return accumulated
+        if (data.startsWith('[ERROR]')) throw new Error(data.slice(7).trim())
+        accumulated += data
+        onChunk(accumulated)
+      }
+    }
+  }
+
+  return accumulated
+}
+
+export async function streamCounsel(
+  token: string | null,
+  onChunk: (text: string) => void
+): Promise<string> {
+  const response = await fetch(`${API_URL}/api/counsel/stream`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to stream counsel: ${response.statusText}`)
+  }
+
+  return readSSEStream(response, onChunk)
+}
+
+export async function streamCoverLetter(
+  token: string | null,
+  jobId: string,
+  onChunk: (text: string) => void
+): Promise<string> {
+  const response = await fetch(`${API_URL}/api/resume/cover-letter/stream`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ job_id: jobId }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to stream cover letter: ${response.statusText}`)
+  }
+
+  return readSSEStream(response, onChunk)
+}
+
+export async function getInterviewPrep(
+  token: string,
+  jobId: string
+): Promise<InterviewPrepResponse> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}/interview-prep`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Failed to get interview prep: ${res.statusText}`)
   }
 
   return res.json()

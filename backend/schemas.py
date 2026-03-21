@@ -161,3 +161,15 @@ class CoverLetterRequest(BaseModel):
 
 class CoverLetterResponse(BaseModel):
     cover_letter: str
+
+
+# ---------------------------------------------------------------------------
+# Interview prep schemas
+# ---------------------------------------------------------------------------
+
+class InterviewQuestion(BaseModel):
+    question: str
+    answer_framework: str
+
+class InterviewPrepResponse(BaseModel):
+    questions: List[InterviewQuestion]

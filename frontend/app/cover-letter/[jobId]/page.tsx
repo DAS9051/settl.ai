@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { getJob, generateCoverLetter } from '@/lib/api'
-import type { Job, CoverLetterResponse } from '@/lib/types'
+import { getJob, streamCoverLetter } from '@/lib/api'
+import type { Job } from '@/lib/types'
 
 function Spinner() {
   return (
@@ -26,7 +26,8 @@ export default function CoverLetterPage() {
 
   const [clLoading, setClLoading] = useState(false)
   const [clError, setClError] = useState<string | null>(null)
-  const [coverLetter, setCoverLetter] = useState<CoverLetterResponse | null>(null)
+  const [coverLetter, setCoverLetter] = useState<string>('')
+  const [streaming, setStreaming] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -46,14 +47,16 @@ export default function CoverLetterPage() {
   const generate = useCallback(async () => {
     setClLoading(true)
     setClError(null)
+    setCoverLetter('')
+    setStreaming(true)
     try {
       const token = await getToken()
-      const data = await generateCoverLetter(token, jobId)
-      setCoverLetter(data)
+      await streamCoverLetter(token, jobId, (text) => setCoverLetter(text))
     } catch (err) {
       setClError(err instanceof Error ? err.message : 'Failed to generate cover letter')
     } finally {
       setClLoading(false)
+      setStreaming(false)
     }
   }, [getToken, jobId])
 
@@ -66,7 +69,7 @@ export default function CoverLetterPage() {
 
   function handleCopy() {
     if (!coverLetter) return
-    navigator.clipboard.writeText(coverLetter.cover_letter).then(() => {
+    navigator.clipboard.writeText(coverLetter).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -124,13 +127,14 @@ export default function CoverLetterPage() {
       )}
 
       {/* Cover letter display */}
-      {coverLetter && !clLoading && (
+      {coverLetter && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
           <pre
             className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm"
             style={{ fontFamily: 'inherit' }}
           >
-            {coverLetter.cover_letter}
+            {coverLetter}
+            {streaming && <span className="animate-pulse">|</span>}
           </pre>
         </div>
       )}
@@ -138,7 +142,7 @@ export default function CoverLetterPage() {
       {/* Actions */}
       {!clLoading && (
         <div className="flex flex-wrap gap-3">
-          {coverLetter && (
+          {coverLetter && !streaming && (
             <button
               onClick={handleCopy}
               className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"

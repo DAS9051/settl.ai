@@ -8,7 +8,7 @@ interface CounselorResultProps {
 export default function CounselorResult({ result }: CounselorResultProps) {
   return (
     <div className="space-y-6">
-      {/* Career Roadmap */}
+      {/* Career Roadmap — vertical timeline */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
         <div className="border-l-4 border-blue-600 px-6 py-5">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Career Roadmap</h2>
@@ -18,15 +18,52 @@ export default function CounselorResult({ result }: CounselorResultProps) {
           {result.roadmap.length === 0 ? (
             <p className="text-sm text-gray-500">No roadmap steps returned.</p>
           ) : (
-            <ol className="space-y-3">
-              {result.roadmap.map((step, idx) => (
-                <li key={idx} className="flex gap-4 text-sm">
-                  <span className="shrink-0 w-7 h-7 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs border border-blue-200">
-                    {idx + 1}
-                  </span>
-                  <span className="text-gray-700 leading-relaxed pt-1">{step}</span>
-                </li>
-              ))}
+            <ol className="space-y-0">
+              {result.roadmap.map((step, idx) => {
+                const isLast = idx === result.roadmap.length - 1
+                // Try to split "Step N: Title\nDescription" or "Step N: Title — Description"
+                const colonIdx = step.indexOf(':')
+                const hasStepPrefix = step.toLowerCase().startsWith('step')
+                let title = step
+                let description = ''
+                if (hasStepPrefix && colonIdx !== -1) {
+                  const rest = step.slice(colonIdx + 1).trim()
+                  const dashIdx = rest.search(/\s—\s|\n/)
+                  if (dashIdx !== -1) {
+                    title = rest.slice(0, dashIdx).trim()
+                    description = rest.slice(dashIdx).replace(/^(\s—\s|\n)/, '').trim()
+                  } else {
+                    title = rest
+                  }
+                }
+
+                return (
+                  <li key={idx} className="flex gap-4">
+                    {/* Left column: circle + connecting line */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-4 h-4 rounded-full bg-indigo-500 border-2 border-indigo-300 shrink-0 mt-1" />
+                      {!isLast && (
+                        <div className="w-0.5 bg-indigo-200 flex-1 mt-1 mb-0 min-h-[1.5rem]" />
+                      )}
+                    </div>
+
+                    {/* Right column: content */}
+                    <div className={`pb-6 flex-1 group ${isLast ? 'pb-0' : ''}`}>
+                      <div className="rounded-lg px-4 py-3 border border-transparent hover:border-indigo-100 hover:bg-indigo-50/40 transition-colors cursor-default">
+                        <p className="text-sm font-semibold text-gray-900 leading-snug">
+                          <span className="text-indigo-500 mr-2 text-xs font-bold uppercase tracking-wide">
+                            Step {idx + 1}
+                          </span>
+                          {hasStepPrefix ? title : step}
+                        </p>
+                        {description && (
+                          <p className="text-sm text-gray-600 mt-1 leading-relaxed">{description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
             </ol>
           )}
         </div>

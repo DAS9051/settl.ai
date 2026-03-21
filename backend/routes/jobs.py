@@ -8,9 +8,9 @@ from database import get_db
 from models.business import Business
 from models.job import Job
 from models.profile import Profile
-from schemas import JobCreate, JobListOut, JobOut, ProfileOut, SkillsGapResponse
+from schemas import InterviewPrepResponse, JobCreate, JobListOut, JobOut, ProfileOut, SkillsGapResponse
 from services.auth import get_current_user_dep
-from services.claude_service import analyze_skills_gap
+from services.claude_service import analyze_skills_gap, generate_interview_prep
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -130,6 +130,33 @@ def skills_gap(
     job_schema = _job_to_out(job, db)
     profile_schema = ProfileOut.model_validate(profile)
     return analyze_skills_gap(profile_schema, job_schema)
+
+
+@router.post("/{job_id}/interview-prep", response_model=InterviewPrepResponse)
+def interview_prep(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """
+    Generate interview questions and answer frameworks for the authenticated user
+    applying to the specified job.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    clerk_user_id: str = current_user.get("sub", "")
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found. Please create your profile via PUT /api/profile first.",
+        )
+
+    job_schema = _job_to_out(job, db)
+    profile_schema = ProfileOut.model_validate(profile)
+    return generate_interview_prep(job_schema, profile_schema)
 
 
 @router.patch("/{job_id}/verify", response_model=JobOut)

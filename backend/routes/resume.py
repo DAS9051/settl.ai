@@ -5,10 +5,10 @@ import subprocess
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, AsyncGenerator, Dict
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
@@ -23,7 +23,7 @@ from schemas import (
     ProfileOut,
 )
 from services.auth import get_current_user_dep
-from services.claude_service import generate_cover_letter, parse_resume
+from services.claude_service import generate_cover_letter, parse_resume, stream_cover_letter
 
 router = APIRouter(prefix="/resume", tags=["resume"])
 
@@ -381,3 +381,38 @@ def cover_letter(
 
     cover_letter_text = generate_cover_letter(profile_schema, job_schema)
     return CoverLetterResponse(cover_letter=cover_letter_text)
+
+
+@router.post("/cover-letter/stream")
+async def cover_letter_stream(
+    payload: CoverLetterRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """
+    Stream a tailored cover letter for the authenticated user using SSE.
+    """
+    clerk_user_id: str = current_user.get("sub", "")
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found. Please create your profile via PUT /api/profile first.",
+        )
+
+    job = db.query(Job).filter(Job.id == payload.job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    profile_schema = ProfileOut.model_validate(profile)
+    job_schema = JobOut.model_validate(job)
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            async for chunk in stream_cover_letter(job_schema, profile_schema):
+                yield f"data: {chunk}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as exc:
+            yield f"data: [ERROR] {exc}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

@@ -1,6 +1,7 @@
-from typing import Any, Dict, List
+from typing import Any, AsyncGenerator, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -9,7 +10,7 @@ from models.job import Job
 from models.profile import Profile
 from schemas import CounselResponse, JobOut, ProfileOut
 from services.auth import get_current_user_dep
-from services.claude_service import get_career_counsel
+from services.claude_service import get_career_counsel, stream_career_counsel
 
 router = APIRouter(prefix="/counsel", tags=["counsel"])
 
@@ -78,3 +79,41 @@ def run_counsel(
 
     result: CounselResponse = get_career_counsel(profile_schema, job_schemas)
     return result
+
+
+@router.post("/stream")
+async def run_counsel_stream(
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """
+    Stream the AI career counselor response for the authenticated user using SSE.
+    """
+    clerk_user_id: str = current_user.get("sub", "")
+
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found. Please create your profile via PUT /api/profile first.",
+        )
+
+    matching_jobs = _jobs_matching_profile(profile, db)
+    job_schemas = []
+    for j in matching_jobs:
+        out = JobOut.model_validate(j)
+        business = db.query(Business).filter(Business.id == j.business_id).first()
+        if business:
+            out.business_name = business.name
+        job_schemas.append(out)
+    profile_schema = ProfileOut.model_validate(profile)
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            async for chunk in stream_career_counsel(profile_schema, job_schemas):
+                yield f"data: {chunk}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as exc:
+            yield f"data: [ERROR] {exc}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

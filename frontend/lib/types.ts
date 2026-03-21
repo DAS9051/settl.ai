@@ -14,15 +14,15 @@ export interface Job {
 export interface EducationEntry {
   school: string
   degree: string
-  year: string
+  year?: string
 }
 
 export interface ExperienceEntry {
   company: string
   role: string
   start_year: string
-  end_year: string
-  description: string
+  end_year?: string
+  description?: string
 }
 
 export interface Profile {
@@ -83,4 +83,13 @@ export interface SalaryInsightResponse {
 
 export interface CoverLetterResponse {
   cover_letter: string
+}
+
+export interface InterviewQuestion {
+  question: string
+  answer_framework: string
+}
+
+export interface InterviewPrepResponse {
+  questions: InterviewQuestion[]
 }

@@ -4,14 +4,27 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { getJob, getSkillsGap, getSalaryInsight, generateCoverLetter } from '@/lib/api'
-import type { Job, SkillsGapResponse, SalaryInsightResponse, CoverLetterResponse } from '@/lib/types'
+import { getJob, getSkillsGap, getSalaryInsight, streamCoverLetter, getInterviewPrep } from '@/lib/api'
+import type { Job, SkillsGapResponse, SalaryInsightResponse, InterviewPrepResponse } from '@/lib/types'
 
 function Spinner() {
   return (
     <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  )
+}
+
+function ChevronDown({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   )
 }
@@ -36,11 +49,18 @@ export default function JobDetailPage() {
   const [salaryError, setSalaryError] = useState<string | null>(null)
   const [salary, setSalary] = useState<SalaryInsightResponse | null>(null)
 
-  // Cover letter
+  // Cover letter — streaming
   const [clLoading, setClLoading] = useState(false)
   const [clError, setClError] = useState<string | null>(null)
-  const [coverLetter, setCoverLetter] = useState<CoverLetterResponse | null>(null)
+  const [coverLetterText, setCoverLetterText] = useState<string | null>(null)
+  const [clStreaming, setClStreaming] = useState(false)
   const [clCopied, setClCopied] = useState(false)
+
+  // Interview prep
+  const [prepLoading, setPrepLoading] = useState(false)
+  const [prepError, setPrepError] = useState<string | null>(null)
+  const [prep, setPrep] = useState<InterviewPrepResponse | null>(null)
+  const [openQuestions, setOpenQuestions] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     async function load() {
@@ -90,24 +110,58 @@ export default function JobDetailPage() {
 
   async function handleCoverLetter() {
     setClLoading(true)
+    setClStreaming(true)
     setClError(null)
-    setCoverLetter(null)
+    setCoverLetterText('')
     try {
       const token = await getToken()
-      const data = await generateCoverLetter(token, id)
-      setCoverLetter(data)
+      const finalText = await streamCoverLetter(token, id, (accumulated) => {
+        setCoverLetterText(accumulated)
+      })
+      setCoverLetterText(finalText)
     } catch (err) {
       setClError(err instanceof Error ? err.message : 'Failed to generate cover letter')
+      setCoverLetterText(null)
     } finally {
       setClLoading(false)
+      setClStreaming(false)
     }
   }
 
   function handleCopyLetter() {
-    if (!coverLetter) return
-    navigator.clipboard.writeText(coverLetter.cover_letter).then(() => {
+    if (!coverLetterText) return
+    navigator.clipboard.writeText(coverLetterText).then(() => {
       setClCopied(true)
       setTimeout(() => setClCopied(false), 2000)
+    })
+  }
+
+  async function handleInterviewPrep() {
+    setPrepLoading(true)
+    setPrepError(null)
+    setPrep(null)
+    setOpenQuestions(new Set())
+    try {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const data = await getInterviewPrep(token, id)
+      setPrep(data)
+    } catch (err) {
+      setPrepError(err instanceof Error ? err.message : 'Failed to load interview prep')
+    } finally {
+      setPrepLoading(false)
+    }
+  }
+
+  function toggleQuestion(idx: number) {
+    setOpenQuestions((prev) => {
+      const next = new Set(prev)
+      if (next.has(idx)) {
+        next.delete(idx)
+      } else {
+        next.add(idx)
+      }
+      return next
     })
   }
 
@@ -371,6 +425,59 @@ export default function JobDetailPage() {
               )}
             </div>
           )}
+
+          {/* Interview Prep button — below skills gap */}
+          <div className="mt-6 pt-5 border-t border-gray-100">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold text-gray-900">Interview Prep</h3>
+            </div>
+            <button
+              onClick={handleInterviewPrep}
+              disabled={prepLoading}
+              className="px-4 py-2 bg-sky-700 text-white rounded-lg text-sm font-semibold hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {prepLoading ? (
+                <>
+                  <Spinner /> Loading questions...
+                </>
+              ) : (
+                'Generate Interview Questions'
+              )}
+            </button>
+
+            {prepError && (
+              <p className="mt-3 text-sm text-red-600">{prepError}</p>
+            )}
+
+            {prep && prep.questions.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {prep.questions.map((q, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <button
+                      onClick={() => toggleQuestion(idx)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                    >
+                      <span className="text-sm font-semibold text-gray-900 pr-4">{q.question}</span>
+                      <ChevronDown open={openQuestions.has(idx)} />
+                    </button>
+                    {openQuestions.has(idx) && (
+                      <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{q.answer_framework}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -412,20 +519,27 @@ export default function JobDetailPage() {
             <p className="mt-3 text-sm text-red-600">{clError}</p>
           )}
 
-          {coverLetter && (
+          {coverLetterText !== null && (
             <div className="mt-4">
-              <textarea
-                readOnly
-                value={coverLetter.cover_letter}
-                rows={12}
-                className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-800 font-mono bg-gray-50 resize-none focus:outline-none"
-              />
-              <button
-                onClick={handleCopyLetter}
-                className="mt-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
-              >
-                {clCopied ? 'Copied!' : 'Copy to Clipboard'}
-              </button>
+              <div className="relative">
+                <textarea
+                  readOnly
+                  value={coverLetterText}
+                  rows={12}
+                  className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-800 font-mono bg-gray-50 resize-none focus:outline-none"
+                />
+                {clStreaming && (
+                  <span className="absolute bottom-5 left-4 inline-block w-0.5 h-4 bg-blue-600 animate-pulse" />
+                )}
+              </div>
+              {!clStreaming && coverLetterText && (
+                <button
+                  onClick={handleCopyLetter}
+                  className="mt-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  {clCopied ? 'Copied!' : 'Copy to Clipboard'}
+                </button>
+              )}
             </div>
           )}
         </div>

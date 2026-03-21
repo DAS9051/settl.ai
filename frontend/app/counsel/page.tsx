@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
-import { getProfile, getCounsel } from '@/lib/api'
+import { getProfile, streamCounsel } from '@/lib/api'
 import type { Profile, CounselResponse } from '@/lib/types'
 import CounselorResult from '@/components/CounselorResult'
 
@@ -15,6 +15,9 @@ export default function CounselPage() {
   const [counselLoading, setCounselLoading] = useState(false)
   const [result, setResult] = useState<CounselResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Streaming state
+  const [streamingText, setStreamingText] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchProfile() {
@@ -35,11 +38,24 @@ export default function CounselPage() {
     setCounselLoading(true)
     setError(null)
     setResult(null)
+    setStreamingText('')
     try {
       const token = await getToken()
-      const data = await getCounsel(token)
-      setResult(data)
+      const finalText = await streamCounsel(token, (accumulated) => {
+        setStreamingText(accumulated)
+      })
+
+      // Parse the final JSON response (strip markdown fences if present)
+      let jsonText = finalText.trim()
+      if (jsonText.startsWith('```')) {
+        const lines = jsonText.split('\n')
+        jsonText = lines.slice(1, lines[lines.length - 1].trim() === '```' ? -1 : undefined).join('\n')
+      }
+      const parsed: CounselResponse = JSON.parse(jsonText)
+      setStreamingText(null)
+      setResult(parsed)
     } catch (err) {
+      setStreamingText(null)
       setError(err instanceof Error ? err.message : 'Failed to get career advice')
     } finally {
       setCounselLoading(false)
@@ -149,6 +165,19 @@ export default function CounselPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600 mb-6">
           {error}
+        </div>
+      )}
+
+      {/* Streaming display */}
+      {streamingText !== null && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Generating your advice...
+          </p>
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-mono">
+            {streamingText}
+            <span className="inline-block w-0.5 h-4 bg-blue-600 ml-0.5 animate-pulse align-text-bottom" />
+          </div>
         </div>
       )}
 

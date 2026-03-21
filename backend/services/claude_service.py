@@ -1,11 +1,13 @@
 import json
 import os
-from typing import List
+from typing import AsyncGenerator, List
 
 import anthropic
 
 from schemas import (
     CounselResponse,
+    InterviewPrepResponse,
+    InterviewQuestion,
     JobOut,
     ProfileOut,
     SkillsGapResponse,
@@ -374,3 +376,157 @@ Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date l
     )
 
     return message.content[0].text if message.content else ""
+
+
+async def stream_career_counsel(profile: ProfileOut, matching_jobs: List[JobOut]) -> AsyncGenerator[str, None]:
+    """
+    Async generator that streams career counseling text token by token.
+    Yields raw text chunks from Claude.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    async_client = anthropic.AsyncAnthropic(api_key=api_key) if api_key else anthropic.AsyncAnthropic()
+
+    user_prompt = _build_prompt(profile, matching_jobs)
+
+    async with async_client.messages.stream(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=(
+            "You are an expert career counselor helping people find jobs and grow their careers. "
+            "Return ONLY valid JSON — no prose, no markdown, no explanations outside the JSON object."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text
+
+
+async def stream_cover_letter(job: JobOut, profile: ProfileOut) -> AsyncGenerator[str, None]:
+    """
+    Async generator that streams cover letter text token by token.
+    Yields raw text chunks from Claude.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    async_client = anthropic.AsyncAnthropic(api_key=api_key) if api_key else anthropic.AsyncAnthropic()
+
+    profile_skills = ", ".join(profile.skills) if profile.skills else "none listed"
+    profile_targets = ", ".join(profile.target_roles) if profile.target_roles else "not specified"
+
+    experience_lines = []
+    for exp in profile.experience:
+        start = exp.get('start_year', '')
+        end = exp.get('end_year', 'Present')
+        period = f"{start}–{end}" if start else end
+        experience_lines.append(
+            f"  - {exp.get('role', '?')} at {exp.get('company', '?')} "
+            f"({period}): {exp.get('description', '')}"
+        )
+    experience_text = "\n".join(experience_lines) if experience_lines else "  - None listed"
+
+    job_skills = ", ".join(job.skills_required) if job.skills_required else "not specified"
+    salary = job.salary_range or "not specified"
+
+    user_prompt = f"""Write a professional cover letter for the following candidate applying to this job.
+
+Candidate profile:
+  Skills: {profile_skills}
+  Target roles: {profile_targets}
+  Experience:
+{experience_text}
+
+Job:
+  Title: {job.title}
+  Location: {job.location}
+  Salary: {salary}
+  Required skills: {job_skills}
+  Description: {job.description}
+
+Write a 3-4 paragraph cover letter in professional tone. Do NOT include a date line or address headers — start directly with "Dear Hiring Manager,\""""
+
+    async with async_client.messages.stream(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=(
+            "You are a professional career writer. "
+            "Write concise, compelling cover letters tailored to the role."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text
+
+
+def generate_interview_prep(job: JobOut, profile: ProfileOut) -> InterviewPrepResponse:
+    """
+    Call Claude to generate interview questions with answer frameworks
+    tailored to the job and candidate's background.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    profile_skills = ", ".join(profile.skills) if profile.skills else "none listed"
+    profile_targets = ", ".join(profile.target_roles) if profile.target_roles else "not specified"
+
+    experience_lines = []
+    for exp in profile.experience:
+        start = exp.get('start_year', '')
+        end = exp.get('end_year', 'Present')
+        period = f"{start}–{end}" if start else end
+        experience_lines.append(
+            f"  - {exp.get('role', '?')} at {exp.get('company', '?')} "
+            f"({period}): {exp.get('description', '')}"
+        )
+    experience_text = "\n".join(experience_lines) if experience_lines else "  - None listed"
+
+    job_skills = ", ".join(job.skills_required) if job.skills_required else "not specified"
+
+    user_prompt = f"""Given this job description and the candidate's profile, generate 5-7 likely interview questions with concrete answer frameworks specific to the role and candidate's background (not generic advice).
+
+Candidate profile:
+  Skills: {profile_skills}
+  Target roles: {profile_targets}
+  Experience:
+{experience_text}
+
+Job:
+  Title: {job.title}
+  Location: {job.location}
+  Required skills: {job_skills}
+  Description: {job.description}
+
+Return ONLY a JSON object with exactly this structure:
+{{
+  "questions": [
+    {{"question": "...", "answer_framework": "..."}},
+    ...
+  ]
+}}"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2048,
+        system="You are an expert interview coach. Return ONLY valid JSON.",
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return InterviewPrepResponse(questions=[
+            InterviewQuestion(
+                question="Tell me about yourself and your relevant experience.",
+                answer_framework="Use the STAR method: describe your background, key skills, and how they relate to this role.",
+            )
+        ])
+
+    questions = [
+        InterviewQuestion(
+            question=q.get("question", ""),
+            answer_framework=q.get("answer_framework", ""),
+        )
+        for q in data.get("questions", [])
+    ]
+    return InterviewPrepResponse(questions=questions)
