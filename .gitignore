@@ -18,3 +18,7 @@ __pycache__/
 
 # Local tooling
 .claude/settings.local.json
+backend/.claude/
+
+# Local binaries (e.g. LaTeX engine); do not commit
+backend/tectonic

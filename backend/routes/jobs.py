@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.business import Business
 from models.job import Job
-from schemas import JobCreate, JobListOut, JobOut
+from models.profile import Profile
+from schemas import JobCreate, JobListOut, JobOut, ProfileOut, SkillsGapResponse
 from services.auth import get_current_user_dep
+from services.claude_service import analyze_skills_gap
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -80,6 +82,45 @@ def create_job(
     db.commit()
     db.refresh(job)
     return JobOut.model_validate(job)
+
+
+@router.get("/{job_id}", response_model=JobOut)
+def get_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+):
+    """Return a single job by ID. Public endpoint — no authentication required."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    return JobOut.model_validate(job)
+
+
+@router.post("/{job_id}/skills-gap", response_model=SkillsGapResponse)
+def skills_gap(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """
+    Return a skills gap analysis comparing the authenticated user's profile
+    against the required skills for the given job.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    clerk_user_id: str = current_user.get("sub", "")
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found. Please create your profile via PUT /api/profile first.",
+        )
+
+    job_schema = JobOut.model_validate(job)
+    profile_schema = ProfileOut.model_validate(profile)
+    return analyze_skills_gap(profile_schema, job_schema)
 
 
 @router.patch("/{job_id}/verify", response_model=JobOut)

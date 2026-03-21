@@ -109,3 +109,53 @@ class CounselResponse(BaseModel):
     roadmap: List[str]
     current_matches: List[JobOut]
     board_recommendations: List[str]
+
+
+# ---------------------------------------------------------------------------
+# Skills gap schemas
+# ---------------------------------------------------------------------------
+
+class SkillsGapResponse(BaseModel):
+    missing_skills: List[str]
+    matching_skills: List[str]
+    gap_analysis: str  # 2-3 sentence summary
+    recommendations: List[str]  # concrete steps to close the gap
+
+
+# ---------------------------------------------------------------------------
+# Salary insight schemas
+# ---------------------------------------------------------------------------
+
+class SalaryInsightRequest(BaseModel):
+    role: str
+    location: str
+    skills: List[str] = Field(default_factory=list)
+
+
+class SalaryInsightResponse(BaseModel):
+    role: str
+    location: str
+    estimated_min: int  # USD annual
+    estimated_max: int
+    median: int
+    notes: str  # 1-2 sentence context
+
+
+# ---------------------------------------------------------------------------
+# Resume schemas
+# ---------------------------------------------------------------------------
+
+class ResumeImportRequest(BaseModel):
+    resume_text: str
+
+
+# ---------------------------------------------------------------------------
+# Cover letter schemas
+# ---------------------------------------------------------------------------
+
+class CoverLetterRequest(BaseModel):
+    job_id: str
+
+
+class CoverLetterResponse(BaseModel):
+    cover_letter: str

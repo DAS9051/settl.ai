@@ -64,3 +64,23 @@ export interface RegisterBusinessPayload {
   name: string
   contact_email: string
 }
+
+export interface SkillsGapResponse {
+  missing_skills: string[]
+  matching_skills: string[]
+  gap_analysis: string
+  recommendations: string[]
+}
+
+export interface SalaryInsightResponse {
+  role: string
+  location: string
+  estimated_min: number
+  estimated_max: number
+  median: number
+  notes: string
+}
+
+export interface CoverLetterResponse {
+  cover_letter: string
+}

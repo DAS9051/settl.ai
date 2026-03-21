@@ -48,22 +48,22 @@ export default function CounselPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">AI Career Counselor</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">AI Career Counselor</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Get personalized career advice powered by Claude AI based on your profile
         </p>
       </div>
 
       {/* Profile Summary */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Your Profile Summary</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6 shadow-sm">
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Your Profile Summary</h2>
 
         {profileLoading ? (
-          <p className="text-sm text-gray-400">Loading profile...</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Loading profile...</p>
         ) : profile === null ? (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             <p className="mb-2">No profile found.</p>
-            <a href="/profile" className="text-blue-700 underline">
+            <a href="/profile" className="text-blue-700 dark:text-blue-400 underline">
               Set up your profile
             </a>{' '}
             to get personalized advice.
@@ -71,47 +71,47 @@ export default function CounselPage() {
         ) : (
           <div className="space-y-3 text-sm">
             <div>
-              <span className="font-medium text-gray-700">Skills: </span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">Skills: </span>
               {profile.skills.length > 0 ? (
-                <span className="text-gray-600">{profile.skills.join(', ')}</span>
+                <span className="text-gray-600 dark:text-gray-400">{profile.skills.join(', ')}</span>
               ) : (
-                <span className="text-gray-400 italic">None added</span>
+                <span className="text-gray-400 dark:text-gray-500 italic">None added</span>
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">Target Roles: </span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">Target Roles: </span>
               {profile.target_roles.length > 0 ? (
-                <span className="text-gray-600">{profile.target_roles.join(', ')}</span>
+                <span className="text-gray-600 dark:text-gray-400">{profile.target_roles.join(', ')}</span>
               ) : (
-                <span className="text-gray-400 italic">None added</span>
+                <span className="text-gray-400 dark:text-gray-500 italic">None added</span>
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">Certifications: </span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">Certifications: </span>
               {profile.certifications.length > 0 ? (
-                <span className="text-gray-600">{profile.certifications.join(', ')}</span>
+                <span className="text-gray-600 dark:text-gray-400">{profile.certifications.join(', ')}</span>
               ) : (
-                <span className="text-gray-400 italic">None added</span>
+                <span className="text-gray-400 dark:text-gray-500 italic">None added</span>
               )}
             </div>
             {profile.education.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">Education: </span>
-                <span className="text-gray-600">
+                <span className="font-medium text-gray-700 dark:text-gray-300">Education: </span>
+                <span className="text-gray-600 dark:text-gray-400">
                   {profile.education.map((e) => `${e.degree} at ${e.school}`).join(', ')}
                 </span>
               </div>
             )}
             {profile.experience.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">Experience: </span>
-                <span className="text-gray-600">
+                <span className="font-medium text-gray-700 dark:text-gray-300">Experience: </span>
+                <span className="text-gray-600 dark:text-gray-400">
                   {profile.experience.map((e) => `${e.role} at ${e.company}`).join(', ')}
                 </span>
               </div>
             )}
             <div className="pt-1">
-              <a href="/profile" className="text-blue-700 text-xs underline">
+              <a href="/profile" className="text-blue-700 dark:text-blue-400 text-xs underline">
                 Edit profile
               </a>
             </div>
@@ -123,7 +123,7 @@ export default function CounselPage() {
       <button
         onClick={handleGetAdvice}
         disabled={counselLoading || profileLoading}
-        className="w-full py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6 flex items-center justify-center gap-2"
+        className="w-full py-3 bg-blue-800 dark:bg-blue-700 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6 flex items-center justify-center gap-2"
       >
         {counselLoading ? (
           <>
@@ -140,7 +140,7 @@ export default function CounselPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600 mb-6">
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-4 text-sm text-red-600 dark:text-red-400 mb-6">
           {error}
         </div>
       )}

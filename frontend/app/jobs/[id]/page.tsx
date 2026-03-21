@@ -1,0 +1,435 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { useAuth, useUser } from '@clerk/nextjs'
+import { getJob, getSkillsGap, getSalaryInsight, generateCoverLetter } from '@/lib/api'
+import type { Job, SkillsGapResponse, SalaryInsightResponse, CoverLetterResponse } from '@/lib/types'
+
+function Spinner() {
+  return (
+    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  )
+}
+
+export default function JobDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const { getToken } = useAuth()
+  const { isSignedIn } = useUser()
+
+  const [job, setJob] = useState<Job | null>(null)
+  const [jobLoading, setJobLoading] = useState(true)
+  const [jobError, setJobError] = useState<string | null>(null)
+
+  // Skills gap
+  const [gapLoading, setGapLoading] = useState(false)
+  const [gapError, setGapError] = useState<string | null>(null)
+  const [gap, setGap] = useState<SkillsGapResponse | null>(null)
+
+  // Salary insight
+  const [salaryOpen, setSalaryOpen] = useState(false)
+  const [salaryLoading, setSalaryLoading] = useState(false)
+  const [salaryError, setSalaryError] = useState<string | null>(null)
+  const [salary, setSalary] = useState<SalaryInsightResponse | null>(null)
+
+  // Cover letter
+  const [clLoading, setClLoading] = useState(false)
+  const [clError, setClError] = useState<string | null>(null)
+  const [coverLetter, setCoverLetter] = useState<CoverLetterResponse | null>(null)
+  const [clCopied, setClCopied] = useState(false)
+
+  useEffect(() => {
+    async function load() {
+      setJobLoading(true)
+      setJobError(null)
+      try {
+        const data = await getJob(id)
+        setJob(data)
+      } catch (err) {
+        setJobError(err instanceof Error ? err.message : 'Failed to load job')
+      } finally {
+        setJobLoading(false)
+      }
+    }
+    load()
+  }, [id])
+
+  async function handleSkillsGap() {
+    setGapLoading(true)
+    setGapError(null)
+    setGap(null)
+    try {
+      const token = await getToken()
+      const data = await getSkillsGap(token, id)
+      setGap(data)
+    } catch (err) {
+      setGapError(err instanceof Error ? err.message : 'Failed to analyze skills gap')
+    } finally {
+      setGapLoading(false)
+    }
+  }
+
+  async function handleSalaryInsight() {
+    if (!job) return
+    setSalaryLoading(true)
+    setSalaryError(null)
+    setSalary(null)
+    try {
+      const data = await getSalaryInsight(job.title, job.location, job.skills_required)
+      setSalary(data)
+    } catch (err) {
+      setSalaryError(err instanceof Error ? err.message : 'Failed to get salary insight')
+    } finally {
+      setSalaryLoading(false)
+    }
+  }
+
+  async function handleCoverLetter() {
+    setClLoading(true)
+    setClError(null)
+    setCoverLetter(null)
+    try {
+      const token = await getToken()
+      const data = await generateCoverLetter(token, id)
+      setCoverLetter(data)
+    } catch (err) {
+      setClError(err instanceof Error ? err.message : 'Failed to generate cover letter')
+    } finally {
+      setClLoading(false)
+    }
+  }
+
+  function handleCopyLetter() {
+    if (!coverLetter) return
+    navigator.clipboard.writeText(coverLetter.cover_letter).then(() => {
+      setClCopied(true)
+      setTimeout(() => setClCopied(false), 2000)
+    })
+  }
+
+  if (jobLoading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+        <Spinner />
+        <span className="ml-2">Loading job...</span>
+      </div>
+    )
+  }
+
+  if (jobError || !job) {
+    return (
+      <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl p-6 text-center">
+        <p className="text-red-600 dark:text-red-400 text-sm font-medium">{jobError ?? 'Job not found'}</p>
+        <Link href="/jobs" className="mt-3 inline-block text-sm text-red-600 dark:text-red-400 underline">
+          Back to Jobs
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {/* Back */}
+      <Link
+        href="/jobs"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-800 dark:hover:text-blue-400 mb-6 transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Jobs
+      </Link>
+
+      {/* Header card */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-4 shadow-sm">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50 leading-tight">{job.title}</h1>
+            {job.business_name && (
+              <p className="text-base text-blue-700 dark:text-blue-400 font-medium mt-1">{job.business_name}</p>
+            )}
+          </div>
+          {job.verified && (
+            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Verified
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <span className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {job.location}
+          </span>
+          {job.salary_range && (
+            <span className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {job.salary_range}
+            </span>
+          )}
+          <span className="flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {new Date(job.created_at).toLocaleDateString()}
+          </span>
+        </div>
+
+        {/* Skills */}
+        {job.skills_required.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Skills Required</p>
+            <div className="flex flex-wrap gap-2">
+              {job.skills_required.map((skill) => (
+                <span key={skill} className="text-xs font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 px-2.5 py-1 rounded-full border border-blue-100 dark:border-blue-900">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Description */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Description</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{job.description}</p>
+        </div>
+
+        {/* Apply button */}
+        <div className="mt-6">
+          {(job as Job & { apply_url?: string }).apply_url ? (
+            <a
+              href={(job as Job & { apply_url?: string }).apply_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-2.5 bg-blue-800 dark:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+            >
+              Apply Now
+            </a>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Contact the business directly to apply.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Salary Insight */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 overflow-hidden shadow-sm">
+        <button
+          onClick={() => {
+            setSalaryOpen((prev) => !prev)
+            if (!salaryOpen && !salary) handleSalaryInsight()
+          }}
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+              <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Salary Insight</span>
+          </div>
+          <svg
+            className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${salaryOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {salaryOpen && (
+          <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-700">
+            {salaryLoading ? (
+              <div className="flex items-center gap-2 py-4 text-gray-400 dark:text-gray-500 text-sm">
+                <Spinner /> Fetching salary data...
+              </div>
+            ) : salaryError ? (
+              <div className="py-4">
+                <p className="text-sm text-red-600 dark:text-red-400 mb-2">{salaryError}</p>
+                <button onClick={handleSalaryInsight} className="text-sm text-blue-700 dark:text-blue-400 underline">
+                  Retry
+                </button>
+              </div>
+            ) : salary ? (
+              <div className="pt-4">
+                <p className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-1">
+                  ${salary.estimated_min.toLocaleString()} – ${salary.estimated_max.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Median: <span className="font-medium text-gray-700 dark:text-gray-300">${salary.median.toLocaleString()}</span>
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{salary.notes}</p>
+              </div>
+            ) : (
+              <div className="py-4">
+                <button
+                  onClick={handleSalaryInsight}
+                  className="px-4 py-2 bg-blue-800 dark:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                >
+                  Get Salary Estimate
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Skills Gap — signed-in only */}
+      {isSignedIn && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-4 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center">
+              <svg className="w-4 h-4 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Skills Gap Analysis</h2>
+          </div>
+          <button
+            onClick={handleSkillsGap}
+            disabled={gapLoading}
+            className="px-4 py-2 bg-blue-800 dark:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {gapLoading ? (
+              <>
+                <Spinner /> Analyzing...
+              </>
+            ) : (
+              'Analyze Skills Gap'
+            )}
+          </button>
+
+          {gapError && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">{gapError}</p>
+          )}
+
+          {gap && (
+            <div className="mt-5 space-y-4">
+              {gap.matching_skills.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Matching Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {gap.matching_skills.map((s) => (
+                      <span key={s} className="text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-900">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {gap.missing_skills.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Missing Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {gap.missing_skills.map((s) => (
+                      <span key={s} className="text-xs font-medium bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-400 px-2.5 py-1 rounded-full border border-red-200 dark:border-red-900">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Analysis</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{gap.gap_analysis}</p>
+              </div>
+
+              {gap.recommendations.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Recommendations</p>
+                  <ol className="space-y-2">
+                    {gap.recommendations.map((r, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-400 font-bold flex items-center justify-center text-xs">
+                          {i + 1}
+                        </span>
+                        <span className="leading-relaxed pt-0.5">{r}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cover Letter — signed-in only */}
+      {isSignedIn && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
+                <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Cover Letter</h2>
+            </div>
+            <Link
+              href={`/cover-letter/${id}`}
+              className="text-xs text-blue-700 dark:text-blue-400 underline hover:text-blue-900 dark:hover:text-blue-300"
+            >
+              Open full page
+            </Link>
+          </div>
+
+          <button
+            onClick={handleCoverLetter}
+            disabled={clLoading}
+            className="px-4 py-2 bg-blue-800 dark:bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {clLoading ? (
+              <>
+                <Spinner /> Generating...
+              </>
+            ) : (
+              'Generate Cover Letter'
+            )}
+          </button>
+
+          {clError && (
+            <p className="mt-3 text-sm text-red-600 dark:text-red-400">{clError}</p>
+          )}
+
+          {coverLetter && (
+            <div className="mt-4">
+              <textarea
+                readOnly
+                value={coverLetter.cover_letter}
+                rows={12}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-800 dark:text-gray-200 font-mono bg-gray-50 dark:bg-gray-900 resize-none focus:outline-none"
+              />
+              <button
+                onClick={handleCopyLetter}
+                className="mt-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                {clCopied ? 'Copied!' : 'Copy to Clipboard'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
