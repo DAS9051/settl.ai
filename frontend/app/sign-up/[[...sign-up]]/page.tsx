@@ -1,12 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { SignUp } from '@clerk/nextjs'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function SignUpPage() {
   const { t } = useLanguage()
+  const pathname = usePathname()
   const [step, setStep] = useState<'pick' | 'signup'>('pick')
+
+  // If Clerk redirected to a sub-route (e.g. /sign-up/verify-email-address),
+  // skip the role picker and render the SignUp component directly.
+  const isSubRoute = pathname !== '/sign-up'
 
   function selectRole(role: 'worker' | 'business') {
     if (typeof window !== 'undefined') {
@@ -15,10 +21,10 @@ export default function SignUpPage() {
     setStep('signup')
   }
 
-  if (step === 'signup') {
+  if (step === 'signup' || isSubRoute) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <SignUp afterSignUpUrl="/" />
+        <SignUp fallbackRedirectUrl="/" />
       </div>
     )
   }

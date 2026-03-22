@@ -108,7 +108,7 @@ export default function Nav() {
             <ThemeToggle />
             <SignedIn>
               <div className="ml-1">
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
               </div>
             </SignedIn>
           </div>
