@@ -3,9 +3,16 @@ import type { Job } from '@/lib/types'
 
 interface JobCardProps {
   job: Job
+  matchPct?: number
 }
 
-export default function JobCard({ job }: JobCardProps) {
+export default function JobCard({ job, matchPct }: JobCardProps) {
+  const matchColor =
+    matchPct === undefined ? null
+    : matchPct >= 70 ? 'bg-green-100 text-green-700 border-green-200'
+    : matchPct >= 40 ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+    : 'bg-gray-100 text-gray-500 border-gray-200'
+
   return (
     <Link href={`/jobs/${job.id}`} className="block group">
       <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-brand-teal/50 hover:-translate-y-0.5 transition-all duration-200 dark:bg-brand-navy-dark dark:border-brand-teal/20 dark:hover:border-brand-teal/40">
@@ -19,18 +26,30 @@ export default function JobCard({ job }: JobCardProps) {
               <p className="text-sm text-brand-teal font-medium mt-0.5 truncate dark:text-brand-sage">{job.business_name}</p>
             )}
           </div>
-          {job.verified && (
-            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-medium bg-brand-sage/20 text-brand-sage-dark px-2 py-1 rounded-full border border-brand-sage dark:bg-brand-teal/20 dark:text-brand-cream dark:border-brand-teal/40">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Verified
-            </span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {job.category === 'short_term' && (
+              <span className="inline-flex items-center text-xs font-semibold px-2 py-1 rounded-full border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-700/40">
+                Short Term
+              </span>
+            )}
+            {matchColor !== null && (
+              <span className={`inline-flex items-center text-xs font-semibold px-2 py-1 rounded-full border ${matchColor}`}>
+                {Math.round(matchPct!)}% match
+              </span>
+            )}
+            {job.verified && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium bg-brand-sage/20 text-brand-sage-dark px-2 py-1 rounded-full border border-brand-sage dark:bg-brand-teal/20 dark:text-brand-cream dark:border-brand-teal/40">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Verified
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Description */}

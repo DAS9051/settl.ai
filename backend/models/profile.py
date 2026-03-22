@@ -50,6 +50,7 @@ class Profile(Base):
     # JSON list of strings, e.g. ["Backend Engineer", "Data Scientist"]
     target_roles = Column(JSON, default=list, nullable=False)
     preferred_language = Column(String, default="English", nullable=False, server_default="English")
+    province = Column(String, default="Ontario", nullable=False, server_default="Ontario")
     updated_at = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),

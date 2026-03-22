@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useUser } from '@clerk/nextjs'
-import { getJobs } from '@/lib/api'
+import { useUser, useAuth } from '@clerk/nextjs'
+import { getJobs, getProfile } from '@/lib/api'
 import type { Job, JobFilters } from '@/lib/types'
 import JobCard from '@/components/JobCard'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -11,11 +11,14 @@ import { useLanguage } from '@/contexts/LanguageContext'
 export default function JobsPage() {
   const { t } = useLanguage()
   const { user, isLoaded } = useUser()
+  const { getToken } = useAuth()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [skillFilter, setSkillFilter] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [profileSkills, setProfileSkills] = useState<string[] | null>(null)
 
   const isBusinessUser =
     isLoaded &&
@@ -39,18 +42,53 @@ export default function JobsPage() {
     fetchJobs()
   }, [fetchJobs])
 
+  useEffect(() => {
+    if (!isLoaded || !user) return
+    async function loadProfile() {
+      try {
+        const token = await getToken()
+        const profile = await getProfile(token)
+        setProfileSkills(profile.skills)
+      } catch {
+        // Profile not found — no match scores shown
+      }
+    }
+    loadProfile()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, user])
+
+  function computeMatch(job: Job): number | undefined {
+    if (!profileSkills || profileSkills.length === 0) return undefined
+    if (!job.skills_required || job.skills_required.length === 0) return undefined
+    const profileLower = profileSkills.map(s => s.toLowerCase())
+    const overlap = job.skills_required.filter(s => profileLower.includes(s.toLowerCase())).length
+    return (overlap / job.skills_required.length) * 100
+  }
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     fetchJobs({
       skill: skillFilter.trim() || undefined,
       location: locationFilter.trim() || undefined,
+      category: categoryFilter || undefined,
     })
   }
 
   function handleClear() {
     setSkillFilter('')
     setLocationFilter('')
+    setCategoryFilter('')
     fetchJobs()
+  }
+
+  function handleCategoryFilter(cat: string) {
+    const next = categoryFilter === cat ? '' : cat
+    setCategoryFilter(next)
+    fetchJobs({
+      skill: skillFilter.trim() || undefined,
+      location: locationFilter.trim() || undefined,
+      category: next || undefined,
+    })
   }
 
   return (
@@ -115,6 +153,27 @@ export default function JobsPage() {
         </button>
       </form>
 
+      {/* Category filter tabs */}
+      <div className="flex items-center gap-2 mb-5">
+        {(['', 'long_term', 'short_term'] as const).map((cat) => {
+          const label = cat === '' ? 'All Jobs' : cat === 'long_term' ? 'Long Term' : 'Short Term'
+          const active = categoryFilter === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => handleCategoryFilter(cat)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                active
+                  ? 'bg-brand-navy text-white border-brand-navy dark:bg-brand-teal dark:border-brand-teal'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-brand-teal hover:text-brand-teal dark:bg-brand-navy-dark dark:text-brand-sage dark:border-brand-teal/30'
+              }`}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Job List */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -170,7 +229,7 @@ export default function JobsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} matchPct={computeMatch(job)} />
           ))}
         </div>
       )}

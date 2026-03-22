@@ -45,6 +45,7 @@ def upsert_profile(
         profile.experience = payload.experience
         profile.target_roles = payload.target_roles
         profile.preferred_language = payload.preferred_language
+        profile.province = payload.province
         profile.updated_at = datetime.now(timezone.utc)
     else:
         profile = Profile(
@@ -55,6 +56,7 @@ def upsert_profile(
             experience=payload.experience,
             target_roles=payload.target_roles,
             preferred_language=payload.preferred_language,
+            province=payload.province,
             updated_at=datetime.now(timezone.utc),
         )
         db.add(profile)

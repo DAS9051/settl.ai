@@ -39,6 +39,16 @@ class JobCreate(BaseModel):
     location: str
     salary_range: Optional[str] = None
     skills_required: List[str] = Field(default_factory=list)
+    application_link: Optional[str] = None
+    company_name: Optional[str] = None
+    category: str = 'long_term'
+
+    @field_validator('category')
+    @classmethod
+    def category_must_be_valid(cls, v: str) -> str:
+        if v not in {'long_term', 'short_term'}:
+            raise ValueError("category must be 'long_term' or 'short_term'")
+        return v
 
 
 class JobOut(BaseModel):
@@ -52,10 +62,36 @@ class JobOut(BaseModel):
     location: str
     salary_range: Optional[str]
     skills_required: List[str]
+    application_link: Optional[str] = None
+    company_name: Optional[str] = None
+    category: str = 'long_term'
     verified: bool
+    status: Optional[str] = "Saved"
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class JobUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    salary_range: Optional[str] = None
+    skills_required: Optional[List[str]] = None
+    application_link: Optional[str] = None
+    category: Optional[str] = None
+
+
+class JobStatusUpdate(BaseModel):
+    status: str
+
+    @field_validator('status')
+    @classmethod
+    def status_must_be_valid(cls, v: str) -> str:
+        valid = {'Saved', 'Applied', 'Interview', 'Offer', 'Rejected'}
+        if v not in valid:
+            raise ValueError(f"status must be one of {valid}")
+        return v
 
 
 class JobListOut(BaseModel):
@@ -88,6 +124,7 @@ class ProfileCreate(BaseModel):
     experience: List[Dict[str, Any]] = Field(default_factory=list)
     target_roles: List[str] = Field(default_factory=list)
     preferred_language: str = "English"
+    province: str = "Ontario"
 
 
 class ProfileOut(BaseModel):
@@ -99,6 +136,7 @@ class ProfileOut(BaseModel):
     experience: List[Dict[str, Any]]
     target_roles: List[str]
     preferred_language: str = "English"
+    province: str = "Ontario"
     updated_at: datetime
 
     model_config = {"from_attributes": True}
@@ -249,3 +287,50 @@ class SetRolePayload(BaseModel):
         if v not in ('worker', 'business'):
             raise ValueError("role must be 'worker' or 'business'")
         return v
+
+
+# ---------------------------------------------------------------------------
+# Outreach message schemas
+# ---------------------------------------------------------------------------
+
+class OutreachRequest(BaseModel):
+    job_title: str
+    job_description: str
+    company_name: Optional[str] = None
+
+
+class OutreachResponse(BaseModel):
+    subject: str
+    body: str
+
+
+# ---------------------------------------------------------------------------
+# Paycheck explainer schemas
+# ---------------------------------------------------------------------------
+
+class PaycheckRequest(BaseModel):
+    salary: float
+    province: str
+
+    @field_validator('salary')
+    @classmethod
+    def salary_must_be_valid(cls, v: float) -> float:
+        import math
+        if not math.isfinite(v) or v <= 0:
+            raise ValueError("salary must be a positive finite number")
+        if v > 10_000_000:
+            raise ValueError("salary exceeds maximum allowed value of $10,000,000")
+        return v
+
+
+class PaycheckDeduction(BaseModel):
+    name: str
+    amount: float
+    explanation: str
+
+
+class PaycheckExplanation(BaseModel):
+    gross: float
+    estimated_net: float
+    deductions: List[PaycheckDeduction]
+    plain_summary: str

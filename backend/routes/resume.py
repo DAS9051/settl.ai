@@ -3,6 +3,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+
+import httpx
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict
@@ -215,18 +217,27 @@ def _build_latex(profile: ProfileOut, full_name: str = "Your Name", email: str =
 """
 
 
+def _find_latex_bin() -> str:
+    """Return path to a usable LaTeX compiler, preferring tectonic then pdflatex."""
+    if os.path.isfile(TECTONIC_BIN):
+        return TECTONIC_BIN
+    for candidate in ["tectonic", "pdflatex", "/Library/TeX/texbin/pdflatex", "/usr/bin/pdflatex"]:
+        found = shutil.which(candidate) or (os.path.isfile(candidate) and candidate)
+        if found:
+            return found
+    raise HTTPException(
+        status_code=500,
+        detail="LaTeX compiler not found on server. Contact the admin.",
+    )
+
+
 def _compile_latex(tex_source: str) -> bytes:
     """
-    Write tex_source to a temp dir, compile with tectonic, return PDF bytes.
+    Write tex_source to a temp dir, compile with tectonic or pdflatex, return PDF bytes.
     Raises HTTPException on failure.
     """
-    # Prefer the bundled binary; fall back to tectonic on the system PATH.
-    tectonic_bin = TECTONIC_BIN if os.path.isfile(TECTONIC_BIN) else shutil.which("tectonic")
-    if not tectonic_bin:
-        raise HTTPException(
-            status_code=500,
-            detail="LaTeX compiler (tectonic) not found on server. Contact the admin.",
-        )
+    compiler = _find_latex_bin()
+    is_pdflatex = "pdflatex" in compiler
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tex_path = os.path.join(tmpdir, "resume.tex")
@@ -235,17 +246,17 @@ def _compile_latex(tex_source: str) -> bytes:
         with open(tex_path, "w", encoding="utf-8") as f:
             f.write(tex_source)
 
-        result = subprocess.run(
-            [tectonic_bin, "--outdir", tmpdir, tex_path],
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
+        if is_pdflatex:
+            cmd = [compiler, "-interaction=nonstopmode", "-output-directory", tmpdir, tex_path]
+        else:
+            cmd = [compiler, "--outdir", tmpdir, tex_path]
 
-        if result.returncode != 0:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+
+        if result.returncode != 0 and not os.path.isfile(pdf_path):
             raise HTTPException(
                 status_code=500,
-                detail=f"LaTeX compilation failed: {result.stderr[-500:]}",
+                detail=f"LaTeX compilation failed: {result.stderr[-500:] or result.stdout[-500:]}",
             )
 
         if not os.path.isfile(pdf_path):
@@ -326,6 +337,29 @@ async def import_resume(
 # Resume generator — Jake's LaTeX template → real PDF via tectonic
 # ---------------------------------------------------------------------------
 
+def _get_clerk_user_info(clerk_user_id: str) -> tuple[str, str]:
+    """Fetch full_name and email from Clerk's backend API."""
+    secret_key = os.environ.get("CLERK_SECRET_KEY", "")
+    if not secret_key:
+        return "Your Name", ""
+    try:
+        resp = httpx.get(
+            f"https://api.clerk.com/v1/users/{clerk_user_id}",
+            headers={"Authorization": f"Bearer {secret_key}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        first = data.get("first_name") or ""
+        last = data.get("last_name") or ""
+        full_name = f"{first} {last}".strip() or "Your Name"
+        emails = data.get("email_addresses", [])
+        email = emails[0].get("email_address", "") if emails else ""
+        return full_name, email
+    except Exception:
+        return "Your Name", ""
+
+
 @router.get("/generate")
 def generate_resume(
     current_user: Dict[str, Any] = Depends(get_current_user_dep),
@@ -343,8 +377,9 @@ def generate_resume(
             detail="Profile not found. Please create your profile via PUT /api/profile first.",
         )
 
+    full_name, email = _get_clerk_user_info(clerk_user_id)
     profile_schema = ProfileOut.model_validate(profile)
-    tex = _build_latex(profile_schema)
+    tex = _build_latex(profile_schema, full_name=full_name, email=email)
     pdf_bytes = _compile_latex(tex)
 
     return Response(

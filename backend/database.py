@@ -16,7 +16,6 @@ _is_sqlite = DATABASE_URL.startswith("sqlite")
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    # Required for SQLite to work correctly with FastAPI's multi-threaded request handling
     connect_args={"check_same_thread": False} if _is_sqlite else {},
 )
 

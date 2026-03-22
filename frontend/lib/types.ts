@@ -9,8 +9,12 @@ export interface Job {
   location: string
   salary_range: string | null
   skills_required: string[]
+  application_link?: string | null
+  company_name?: string | null
+  category?: string
   verified: boolean
   created_at: string
+  status?: string
 }
 
 export interface EducationEntry {
@@ -34,6 +38,7 @@ export interface Profile {
   experience: ExperienceEntry[]
   target_roles: string[]
   preferred_language: string
+  province: string
 }
 
 export interface CounselResponse {
@@ -54,6 +59,7 @@ export interface Business {
 export interface JobFilters {
   skill?: string
   location?: string
+  category?: string
 }
 
 export interface PostJobPayload {
@@ -62,6 +68,9 @@ export interface PostJobPayload {
   location: string
   salary_range: string | null
   skills_required: string[]
+  application_link?: string | null
+  company_name?: string | null
+  category?: string
 }
 
 export interface RegisterBusinessPayload {
@@ -124,4 +133,22 @@ export interface QuizEvaluationResponse {
   correct: boolean
   correct_answer: string
   feedback: string
+}
+
+export interface OutreachResponse {
+  subject: string
+  body: string
+}
+
+export interface PaycheckDeduction {
+  name: string
+  amount: number
+  explanation: string
+}
+
+export interface PaycheckExplanation {
+  gross: number
+  estimated_net: number
+  deductions: PaycheckDeduction[]
+  plain_summary: string
 }

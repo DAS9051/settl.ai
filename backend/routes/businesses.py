@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models.business import Business
-from schemas import BusinessCreate, BusinessOut
+from models.job import Job
+from schemas import BusinessCreate, BusinessOut, JobListOut, JobOut
 
 from services.auth import get_current_user_dep
 
@@ -67,3 +68,21 @@ def get_my_business(
             detail="No business found for this account.",
         )
     return BusinessOut.model_validate(business)
+
+
+@router.get("/me/jobs", response_model=JobListOut)
+def get_my_business_jobs(
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Return all jobs posted by the authenticated user's business."""
+    clerk_user_id: str = current_user.get("sub", "")
+    business = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No business found for this account.")
+    jobs = db.query(Job).filter(Job.business_id == business.id, Job.is_personal == False).order_by(Job.created_at.desc()).all()
+    def _out(j: Job) -> JobOut:
+        out = JobOut.model_validate(j)
+        out.business_name = business.name
+        return out
+    return JobListOut(jobs=[_out(j) for j in jobs], total=len(jobs))

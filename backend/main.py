@@ -18,6 +18,8 @@ import models.profile   # noqa: F401
 from routes import businesses, counsel, jobs, profile, resume, insights
 from routes import auth as auth_router
 from routes import quiz as quiz_router
+from routes import paycheck as paycheck_router
+from routes import outreach as outreach_router
 
 
 # ---------------------------------------------------------------------------
@@ -26,7 +28,11 @@ from routes import quiz as quiz_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        # Neon's PgBouncer pooler doesn't support DDL — tables already exist
+        print(f"[startup] create_all skipped: {e}")
     yield
 
 
@@ -64,6 +70,8 @@ app.include_router(insights.router, prefix="/api")
 app.include_router(resume.router, prefix="/api")
 app.include_router(auth_router.router, prefix="/api")
 app.include_router(quiz_router.router, prefix="/api")
+app.include_router(paycheck_router.router, prefix="/api")
+app.include_router(outreach_router.router, prefix="/api")
 
 
 # ---------------------------------------------------------------------------

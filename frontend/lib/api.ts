@@ -14,6 +14,8 @@ import type {
   FirstWeekPrepResponse,
   QuizQuestion,
   QuizEvaluationResponse,
+  OutreachResponse,
+  PaycheckExplanation,
 } from './types'
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
@@ -30,6 +32,7 @@ export async function getJobs(filters?: JobFilters): Promise<Job[]> {
   const params = new URLSearchParams()
   if (filters?.skill) params.set('skill', filters.skill)
   if (filters?.location) params.set('location', filters.location)
+  if (filters?.category) params.set('category', filters.category)
 
   const query = params.toString() ? `?${params.toString()}` : ''
   const res = await fetch(`${API_URL}/api/jobs${query}`, {
@@ -82,6 +85,32 @@ export async function postJob(token: string | null, job: PostJobPayload): Promis
   }
 
   return res.json()
+}
+
+export async function getMyBusinessJobs(token: string | null): Promise<{ jobs: Job[]; total: number }> {
+  const res = await fetch(`${API_URL}/api/businesses/me/jobs`, {
+    headers: authHeaders(token),
+  })
+  if (!res.ok) throw new Error(`Failed to fetch jobs: ${res.statusText}`)
+  return res.json()
+}
+
+export async function updateJob(token: string | null, jobId: string, updates: Partial<PostJobPayload>): Promise<Job> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(updates),
+  })
+  if (!res.ok) throw new Error(`Failed to update job: ${res.statusText}`)
+  return res.json()
+}
+
+export async function deleteJob(token: string | null, jobId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+  if (!res.ok) throw new Error(`Failed to delete job: ${res.statusText}`)
 }
 
 export async function getCounsel(token: string | null): Promise<CounselResponse> {
@@ -401,4 +430,52 @@ export async function deletePersonalJob(token: string | null, jobId: string): Pr
     headers,
   })
   if (!res.ok) throw new Error('Failed to delete tracked job')
+}
+
+export async function updateJobStatus(token: string | null, jobId: string, status: string): Promise<Job> {
+  const res = await fetch(`${API_URL}/api/jobs/personal/${jobId}/status`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ status }),
+  })
+  if (!res.ok) throw new Error('Failed to update job status')
+  return res.json()
+}
+
+export async function generateOutreachMessage(token: string | null, jobId: string): Promise<OutreachResponse> {
+  const res = await fetch(`${API_URL}/api/jobs/${jobId}/outreach`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+  if (!res.ok) throw new Error(`Failed to generate outreach message: ${res.statusText}`)
+  return res.json()
+}
+
+export async function generateOutreachFromText(
+  token: string | null,
+  jobTitle: string,
+  jobDescription: string,
+  companyName?: string
+): Promise<OutreachResponse> {
+  const res = await fetch(`${API_URL}/api/outreach`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ job_title: jobTitle, job_description: jobDescription, company_name: companyName }),
+  })
+  if (!res.ok) throw new Error(`Failed to generate outreach message: ${res.statusText}`)
+  return res.json()
+}
+
+export async function explainPaycheck(
+  token: string | null,
+  salary: number,
+  province: string
+): Promise<PaycheckExplanation> {
+  const res = await fetch(`${API_URL}/api/paycheck/explain`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ salary, province }),
+  })
+  if (!res.ok) throw new Error(`Failed to explain paycheck: ${res.statusText}`)
+  return res.json()
 }

@@ -9,7 +9,7 @@ export default function HomePage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-cream/30 via-brand-cream-light/20 to-transparent rounded-3xl dark:from-brand-navy/60 dark:via-brand-navy-dark/30 dark:to-transparent" />
 
         <div className="inline-flex items-center gap-2 bg-brand-navy text-brand-cream text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase shadow-sm dark:bg-brand-teal dark:text-brand-cream">
-          Powered by Claude AI
+          AI-Powered Career Tools
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold text-brand-navy mb-5 leading-tight tracking-tight dark:text-brand-cream">
@@ -57,7 +57,7 @@ export default function HomePage() {
               </svg>
             ),
             title: 'AI Counselor',
-            desc: 'Get a personalised roadmap and job matches from Claude.',
+            desc: 'Get a personalised roadmap and job matches based on your profile.',
             iconBg: 'bg-gray-100 text-brand-navy dark:bg-brand-teal/20 dark:text-brand-cream',
           },
           {
@@ -103,7 +103,7 @@ export default function HomePage() {
 
       {/* Footer blurb */}
       <p className="mt-16 text-xs text-gray-400 tracking-wide dark:text-brand-sage/60">
-        settl.ai · Powered by Anthropic Claude
+        settl.ai · Built for newcomers to Canada
       </p>
     </div>
   )

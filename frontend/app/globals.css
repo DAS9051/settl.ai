@@ -7,6 +7,43 @@
     color-scheme: light;
   }
 
+  /* ── Light mode: remap generic blues/grays to brand palette ── */
+
+  /* Primary buttons */
+  .bg-blue-800 { background-color: #033F63 !important; }
+  .bg-blue-700 { background-color: #0a5a8a !important; }
+  .hover\:bg-blue-700:hover { background-color: #0a5a8a !important; }
+  .hover\:bg-blue-800:hover { background-color: #033F63 !important; }
+
+  /* Text links and accent colors */
+  .text-blue-700 { color: #28666e !important; }
+  .text-blue-800 { color: #033F63 !important; }
+  .text-blue-900 { color: #033F63 !important; }
+
+  /* Info/notice banners (bg-blue-50 panels) */
+  .bg-blue-50 { background-color: rgba(40, 102, 110, 0.08) !important; }
+  .border-blue-100 { border-color: rgba(40, 102, 110, 0.2) !important; }
+  .border-blue-200 { border-color: rgba(40, 102, 110, 0.3) !important; }
+
+  /* Focus rings */
+  .focus\:ring-blue-300:focus { --tw-ring-color: rgba(40, 102, 110, 0.4) !important; }
+  .focus\:ring-blue-500:focus { --tw-ring-color: rgba(40, 102, 110, 0.6) !important; }
+
+  /* Primary headings → navy */
+  .text-gray-900 { color: #033F63 !important; }
+  .text-gray-800 { color: #033F63 !important; }
+
+  /* Body / label text → slightly softened navy */
+  .text-gray-700 { color: #1a4f6e !important; }
+
+  /* Muted / secondary text → sage */
+  .text-gray-500 { color: #7c9885 !important; }
+  .text-gray-400 { color: #9db5a4 !important; }
+
+  /* Hover border accents */
+  .hover\:border-blue-500:hover { border-color: #28666e !important; }
+  .hover\:text-blue-800:hover { color: #033F63 !important; }
+
   .dark {
     color-scheme: dark;
     /* Brand-navy dark palette */

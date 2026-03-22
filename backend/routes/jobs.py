@@ -17,6 +17,9 @@ from schemas import (
     JobCreate,
     JobListOut,
     JobOut,
+    JobStatusUpdate,
+    JobUpdate,
+    OutreachResponse,
     ProfileOut,
     SkillsGapResponse,
 )
@@ -24,6 +27,7 @@ from services.auth import get_current_user_dep
 from services.claude_service import (
     analyze_skills_gap,
     generate_interview_prep,
+    generate_outreach_message,
     get_first_week_prep,
     translate_jargon,
 )
@@ -78,6 +82,9 @@ def create_personal_job(
         location=payload.location,
         salary_range=payload.salary_range,
         skills_required=payload.skills_required,
+        application_link=payload.application_link,
+        company_name=payload.company_name,
+        category=payload.category,
         verified=False,
     )
     db.add(job)
@@ -86,9 +93,29 @@ def create_personal_job(
     return _job_to_out(job, db)
 
 
+@router.patch("/personal/{job_id}/status", response_model=JobOut)
+def update_job_status(
+    job_id: uuid.UUID,
+    payload: JobStatusUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Update the status of a personal tracked job."""
+    clerk_user_id: str = current_user.get("sub") or ""
+    if not clerk_user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: missing sub claim.")
+    job = db.query(Job).filter(Job.id == job_id, Job.clerk_user_id == clerk_user_id, Job.is_personal == True).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    job.status = payload.status
+    db.commit()
+    db.refresh(job)
+    return _job_to_out(job, db)
+
+
 @router.delete("/personal/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_personal_job(
-    job_id: str,
+    job_id: uuid.UUID,
     current_user: Dict[str, Any] = Depends(get_current_user_dep),
     db: Session = Depends(get_db),
 ):
@@ -111,6 +138,7 @@ def delete_personal_job(
 def list_jobs(
     skill: Optional[str] = Query(None, description="Filter by required skill (case-insensitive substring)"),
     location: Optional[str] = Query(None, description="Filter by location (case-insensitive substring)"),
+    category: Optional[str] = Query(None, description="Filter by category: 'long_term' or 'short_term'"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -120,6 +148,9 @@ def list_jobs(
 
     if location:
         query = query.filter(Job.location.ilike(f"%{location}%"))
+
+    if category:
+        query = query.filter(Job.category == category)
 
     # Fetch all matching location/verified rows then filter by skill in Python
     # (avoids DB-specific JSON operators while staying portable)
@@ -165,6 +196,8 @@ def create_job(
         location=payload.location,
         salary_range=payload.salary_range,
         skills_required=payload.skills_required,
+        application_link=payload.application_link,
+        category=payload.category,
         # Hackathon shortcut: auto-verify all postings.
         verified=True,
     )
@@ -174,20 +207,77 @@ def create_job(
     return _job_to_out(job, db)
 
 
+@router.patch("/{job_id}", response_model=JobOut)
+def update_job(
+    job_id: str,
+    payload: JobUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Update a business job posting. Only the owning business can edit it."""
+    clerk_user_id: str = current_user.get("sub", "")
+    try:
+        uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    business = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No business account found.")
+    job = db.query(Job).filter(Job.id == job_id, Job.business_id == business.id, Job.is_personal == False).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    if payload.title is not None:
+        job.title = payload.title
+    if payload.description is not None:
+        job.description = payload.description
+    if payload.location is not None:
+        job.location = payload.location
+    if payload.salary_range is not None:
+        job.salary_range = payload.salary_range
+    if payload.skills_required is not None:
+        job.skills_required = payload.skills_required
+    if payload.application_link is not None:
+        job.application_link = payload.application_link
+    if payload.category is not None:
+        job.category = payload.category
+    db.commit()
+    db.refresh(job)
+    return _job_to_out(job, db)
+
+
+@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_job(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Delete a business job posting. Only the owning business can delete it."""
+    clerk_user_id: str = current_user.get("sub", "")
+    try:
+        uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    business = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No business account found.")
+    job = db.query(Job).filter(Job.id == job_id, Job.business_id == business.id, Job.is_personal == False).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    db.delete(job)
+    db.commit()
+
+
 @router.get("/{job_id}", response_model=JobOut)
 def get_job(
     job_id: str,
     db: Session = Depends(get_db),
 ):
-    """Return a single job by ID. Public endpoint — no authentication required.
-
-    Personal jobs are never served here; callers should use GET /jobs/personal for those.
-    """
+    """Return a single job by ID. Personal jobs are accessible by UUID so AI tools work from the tracker."""
     try:
         uuid.UUID(job_id)
     except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
-    job = db.query(Job).filter(Job.id == job_id, Job.is_personal == False).first()
+    job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
     return _job_to_out(job, db)
@@ -280,6 +370,31 @@ def first_week_prep(
 
     job_schema = _job_to_out(job, db)
     return get_first_week_prep(job_schema, language=language)
+
+
+@router.post("/{job_id}/outreach", response_model=OutreachResponse)
+def outreach_message(
+    job_id: uuid.UUID,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Generate a cold outreach email for a job using the user's profile."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+
+    clerk_user_id: str = current_user.get("sub", "")
+    profile = db.query(Profile).filter(Profile.clerk_user_id == clerk_user_id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Profile not found. Please create your profile via PUT /api/profile first.",
+        )
+
+    job_schema = _job_to_out(job, db)
+    profile_schema = ProfileOut.model_validate(profile)
+    language = getattr(profile, "preferred_language", "English") or "English"
+    return generate_outreach_message(job_schema, profile_schema, language=language)
 
 
 @router.patch("/{job_id}/verify", response_model=JobOut)

@@ -12,6 +12,9 @@ from schemas import (
     InterviewQuestion,
     JargonTranslationResponse,
     JobOut,
+    OutreachResponse,
+    PaycheckDeduction,
+    PaycheckExplanation,
     ProfileOut,
     QuizEvaluationResponse,
     QuizQuestion,
@@ -596,6 +599,145 @@ Return ONLY a JSON object:
         ]
 
     return FirstWeekPrepResponse(tips=tips)
+
+
+def generate_outreach_message(job: JobOut, profile: ProfileOut, language: str = "English") -> OutreachResponse:
+    """Generate a short cold outreach email for an immigrant job seeker."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    profile_skills = ", ".join(profile.skills) if profile.skills else "none listed"
+    profile_targets = ", ".join(profile.target_roles) if profile.target_roles else "not specified"
+    experience_lines = []
+    for exp in profile.experience:
+        start = exp.get('start_year', '')
+        end = exp.get('end_year', 'Present')
+        period = f"{start}–{end}" if start else end
+        experience_lines.append(f"{exp.get('role', '?')} at {exp.get('company', '?')} ({period})")
+    experience_text = "; ".join(experience_lines) if experience_lines else "Not listed"
+
+    user_prompt = f"""You are helping an immigrant job seeker write a short cold outreach email to a Canadian company to inquire about job opportunities and introduce themselves.
+
+Candidate profile:
+  Skills: {profile_skills}
+  Target roles: {profile_targets}
+  Experience: {experience_text}
+
+Company/Role they are reaching out about:
+  Role of interest: {job.title}
+  Company: {job.business_name or "the company"}
+  Location: {job.location}
+  Context: {job.description[:300]}
+
+Write a subject line and a 3-sentence cold outreach email body. The tone should be:
+- Proactively inquiring whether the company is currently hiring or open to candidates
+- Briefly highlighting 1-2 of the candidate's most relevant skills or experiences
+- Expressing genuine interest in the company specifically
+- Do NOT say "thank you for the opportunity to apply" or imply they saw a job posting
+- Be warm, direct, and culturally appropriate for Canadian professional norms
+
+Return ONLY a JSON object:
+{{
+  "subject": "...",
+  "body": "..."
+}}"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=512,
+        system=(
+            f"{_lang_prefix(language)}You are an expert at writing professional Canadian business emails. "
+            "Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return OutreachResponse(
+            subject=f"Application for {job.title}",
+            body="Dear Hiring Manager, I am writing to express my interest in the position at your company. My skills and experience make me a strong candidate. I would welcome the opportunity to discuss how I can contribute to your team.",
+        )
+
+    return OutreachResponse(
+        subject=data.get("subject", f"Application for {job.title}"),
+        body=data.get("body", ""),
+    )
+
+
+def explain_paycheck(salary: float, province: str, language: str = "English") -> PaycheckExplanation:
+    """Explain Canadian paycheck deductions for a given gross salary and province."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
+
+    user_prompt = f"""An immigrant worker in Canada earns a gross annual salary of ${salary:,.2f} and works in {province}.
+
+Explain their paycheck deductions clearly. Calculate approximate annual amounts for:
+1. Federal income tax
+2. Provincial income tax (for {province})
+3. CPP (Canada Pension Plan) contributions
+4. EI (Employment Insurance) premiums
+
+Then estimate the annual net (take-home) pay.
+
+Return ONLY a JSON object:
+{{
+  "gross": {salary},
+  "estimated_net": <number>,
+  "deductions": [
+    {{"name": "Federal Income Tax", "amount": <number>, "explanation": "...1-2 sentences explaining what this is and why it's deducted"}},
+    {{"name": "Provincial Income Tax ({province})", "amount": <number>, "explanation": "..."}},
+    {{"name": "CPP Contributions", "amount": <number>, "explanation": "..."}},
+    {{"name": "EI Premiums", "amount": <number>, "explanation": "..."}}
+  ],
+  "plain_summary": "...2-3 sentences in plain language summarizing what the worker takes home and why deductions exist"
+}}"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=(
+            f"{_lang_prefix(language)}You are a Canadian financial literacy educator helping immigrants understand "
+            "their paycheque deductions. Be accurate and compassionate. Return ONLY valid JSON."
+        ),
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+
+    raw_text = message.content[0].text if message.content else ""
+    text = _strip_fences(raw_text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return PaycheckExplanation(
+            gross=salary,
+            estimated_net=salary * 0.75,
+            deductions=[
+                PaycheckDeduction(name="Estimated Total Deductions", amount=salary * 0.25,
+                                  explanation="Includes federal/provincial income tax, CPP, and EI. Unable to calculate precisely at this time.")
+            ],
+            plain_summary="Your take-home pay is approximately 75% of your gross salary after Canadian tax and benefit deductions.",
+        )
+
+    deductions = [
+        PaycheckDeduction(
+            name=d.get("name", ""),
+            amount=float(d.get("amount", 0)),
+            explanation=d.get("explanation", ""),
+        )
+        for d in data.get("deductions", [])
+    ]
+
+    return PaycheckExplanation(
+        gross=float(data.get("gross", salary)),
+        estimated_net=float(data.get("estimated_net", 0)),
+        deductions=deductions,
+        plain_summary=data.get("plain_summary", ""),
+    )
 
 
 def generate_quiz_question(category: str, language: str = "English") -> QuizQuestion:

@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const [certificationsInput, setCertificationsInput] = useState('')
   const [targetRolesInput, setTargetRolesInput] = useState('')
   const [preferredLanguage, setPreferredLanguage] = useState('English')
+  const [province, setProvince] = useState('Ontario')
   const [education, setEducation] = useState<EducationEntry[]>([emptyEducation()])
   const [experience, setExperience] = useState<ExperienceEntry[]>([emptyExperience()])
 
@@ -46,6 +47,7 @@ export default function ProfilePage() {
         const lang = data.preferred_language || 'English'
         setPreferredLanguage(lang)
         setLanguage(lang as Language)
+        setProvince(data.province || 'Ontario')
         setEducation(data.education.length > 0 ? data.education : [emptyEducation()])
         setExperience(data.experience.length > 0 ? data.experience : [emptyExperience()])
       } catch {
@@ -77,6 +79,7 @@ export default function ProfilePage() {
         certifications: csvToArray(certificationsInput),
         target_roles: csvToArray(targetRolesInput),
         preferred_language: preferredLanguage,
+        province,
         education: education.filter((e) => e.school.trim() || e.degree.trim()),
         experience: experience.filter((e) => e.company.trim() || e.role.trim()),
       }
@@ -261,6 +264,31 @@ export default function ProfilePage() {
             <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
             <option value="Mandarin (Simplified)">中文简体 (Mandarin Simplified)</option>
             <option value="Korean">한국어 (Korean)</option>
+          </select>
+        </div>
+
+        {/* Province */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Province / Territory</h2>
+          <p className="text-xs text-gray-400 mb-3">Used to show you accurate minimum wage, rights, and paycheck info for your area.</p>
+          <select
+            value={province}
+            onChange={(e) => setProvince(e.target.value)}
+            className={inputClass}
+          >
+            <option value="Ontario">Ontario</option>
+            <option value="British Columbia">British Columbia</option>
+            <option value="Alberta">Alberta</option>
+            <option value="Quebec">Quebec</option>
+            <option value="Manitoba">Manitoba</option>
+            <option value="Saskatchewan">Saskatchewan</option>
+            <option value="Nova Scotia">Nova Scotia</option>
+            <option value="New Brunswick">New Brunswick</option>
+            <option value="Prince Edward Island">Prince Edward Island</option>
+            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+            <option value="Northwest Territories">Northwest Territories</option>
+            <option value="Yukon">Yukon</option>
+            <option value="Nunavut">Nunavut</option>
           </select>
         </div>
 

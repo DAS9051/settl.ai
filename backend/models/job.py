@@ -43,7 +43,11 @@ class Job(Base):
     location = Column(String, nullable=False)
     salary_range = Column(String, nullable=True)
     skills_required = Column(JSON, default=list, nullable=False)
+    application_link = Column(String, nullable=True)
+    company_name = Column(String, nullable=True)
     verified = Column(Boolean, default=False, nullable=False)
+    status = Column(String, default='Saved', nullable=False, server_default='Saved')
+    category = Column(String, default='long_term', nullable=False, server_default='long_term')
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), nullable=False)
 
     business = relationship("Business", back_populates="jobs")

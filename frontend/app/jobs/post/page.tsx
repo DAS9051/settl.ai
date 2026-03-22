@@ -23,6 +23,8 @@ export default function PostJobPage() {
   const [location, setLocation] = useState('')
   const [salaryRange, setSalaryRange] = useState('')
   const [skillsInput, setSkillsInput] = useState('')
+  const [applicationLink, setApplicationLink] = useState('')
+  const [category, setCategory] = useState('long_term')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [business, setBusiness] = useState<Business | null>(null)
@@ -97,6 +99,8 @@ export default function PostJobPage() {
         location: location.trim(),
         salary_range: salaryRange.trim(),
         skills_required: skills,
+        application_link: applicationLink.trim() || null,
+        category,
       })
 
       router.push('/jobs')
@@ -133,7 +137,7 @@ export default function PostJobPage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Frontend Developer"
+            placeholder="e.g. Cashier, Delivery Driver, Warehouse Associate"
             className={inputClass}
           />
         </div>
@@ -187,10 +191,44 @@ export default function PostJobPage() {
             type="text"
             value={skillsInput}
             onChange={(e) => setSkillsInput(e.target.value)}
-            placeholder="e.g. React, TypeScript, Node.js (comma-separated)"
+            placeholder="e.g. Customer Service, Driving, Physical Fitness (comma-separated)"
             className={inputClass}
           />
           <p className="text-xs text-gray-400 mt-1">Separate multiple skills with commas</p>
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Application Link
+          </label>
+          <input
+            type="url"
+            value={applicationLink}
+            onChange={(e) => setApplicationLink(e.target.value)}
+            placeholder="e.g. https://yourcompany.com/apply or mailto:jobs@yourcompany.com"
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-400 mt-1">Optional — link for applicants to apply</p>
+        </div>
+
+        <div>
+          <label className={labelClass}>Job Type</label>
+          <div className="flex gap-3">
+            {(['long_term', 'short_term'] as const).map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  category === cat
+                    ? 'bg-brand-navy text-white border-brand-navy'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-brand-teal'
+                }`}
+              >
+                {cat === 'long_term' ? 'Long Term' : 'Short Term'}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-3 pt-2">

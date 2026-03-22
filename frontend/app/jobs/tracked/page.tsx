@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { getPersonalJobs, createPersonalJob, deletePersonalJob } from '@/lib/api'
+import { getPersonalJobs, createPersonalJob, deletePersonalJob, updateJobStatus } from '@/lib/api'
 import type { Job } from '@/lib/types'
 
 const inputClass =
@@ -20,8 +20,10 @@ export default function TrackedJobsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
   const [salaryRange, setSalaryRange] = useState('')
@@ -61,6 +63,7 @@ export default function TrackedJobsPage() {
       const token = await getToken()
       const job = await createPersonalJob(token, {
         title: title.trim(),
+        company_name: companyName.trim() || null,
         description: description.trim(),
         location: location.trim() || 'Unknown',
         salary_range: salaryRange.trim() || null,
@@ -68,11 +71,35 @@ export default function TrackedJobsPage() {
       })
       setJobs(prev => [job, ...prev])
       setShowForm(false)
-      setTitle(''); setDescription(''); setLocation(''); setSalaryRange(''); setSkillsInput('')
+      setTitle(''); setCompanyName(''); setDescription(''); setLocation(''); setSalaryRange(''); setSkillsInput('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add job')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const STATUS_OPTIONS = ['Saved', 'Applied', 'Interview', 'Offer', 'Rejected']
+  const STATUS_COLORS: Record<string, string> = {
+    Saved: 'bg-gray-100 text-gray-600',
+    Applied: 'bg-blue-100 text-blue-700',
+    Interview: 'bg-purple-100 text-purple-700',
+    Offer: 'bg-green-100 text-green-700',
+    Rejected: 'bg-red-100 text-red-600',
+  }
+
+  async function handleStatusChange(jobId: string, newStatus: string) {
+    if (updatingStatusId === jobId) return
+    setUpdatingStatusId(jobId)
+    setError(null)
+    try {
+      const token = await getToken()
+      const updated = await updateJobStatus(token, jobId, newStatus)
+      setJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: updated.status } : j))
+    } catch {
+      setError('Failed to update status.')
+    } finally {
+      setUpdatingStatusId(null)
     }
   }
 
@@ -126,7 +153,17 @@ export default function TrackedJobsPage() {
               required
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Software Engineer at Google"
+              placeholder="e.g. Cashier, Delivery Driver, Software Engineer"
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+            <input
+              value={companyName}
+              onChange={e => setCompanyName(e.target.value)}
+              placeholder="e.g. Amazon, Tim Hortons"
               className={inputClass}
             />
           </div>
@@ -169,7 +206,7 @@ export default function TrackedJobsPage() {
             <input
               value={skillsInput}
               onChange={e => setSkillsInput(e.target.value)}
-              placeholder="e.g. React, TypeScript, Node.js (comma-separated)"
+              placeholder="e.g. Customer Service, Driving, Food Handling (comma-separated)"
               className={inputClass}
             />
           </div>
@@ -226,6 +263,9 @@ export default function TrackedJobsPage() {
                     )}
                   </div>
                   <h3 className="text-base font-semibold text-gray-900 truncate">{job.title}</h3>
+                  {job.company_name && (
+                    <p className="text-sm text-brand-teal font-medium mt-0.5 truncate dark:text-brand-sage">{job.company_name}</p>
+                  )}
                   {job.salary_range && (
                     <p className="text-xs text-gray-500 mt-0.5">{job.salary_range}</p>
                   )}
@@ -243,6 +283,16 @@ export default function TrackedJobsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <select
+                    value={job.status || 'Saved'}
+                    onChange={e => handleStatusChange(job.id, e.target.value)}
+                    disabled={updatingStatusId === job.id}
+                    className={`text-xs font-semibold px-2 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 ${STATUS_COLORS[job.status || 'Saved'] || STATUS_COLORS.Saved}`}
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                   <button
                     onClick={() => router.push(`/jobs/${job.id}`)}
                     className="px-3 py-1.5 text-xs font-semibold text-brand-navy border border-brand-teal/40 rounded-lg hover:bg-brand-cream-light transition-colors"

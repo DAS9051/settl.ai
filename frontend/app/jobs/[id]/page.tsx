@@ -323,9 +323,9 @@ export default function JobDetailPage() {
 
         {/* Apply button */}
         <div className="mt-6">
-          {(job as Job & { apply_url?: string }).apply_url ? (
+          {job.application_link ? (
             <a
-              href={(job as Job & { apply_url?: string }).apply_url}
+              href={job.application_link}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 py-2.5 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
@@ -698,16 +698,22 @@ export default function JobDetailPage() {
 
           {coverLetterText !== null && (
             <div className="mt-4">
-              <div className="relative">
-                <textarea
-                  readOnly
-                  value={coverLetterText}
-                  rows={12}
-                  className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-800 font-mono bg-gray-50 resize-none focus:outline-none dark:bg-brand-navy dark:border-brand-teal/30 dark:text-gray-200"
-                />
-                {clStreaming && (
-                  <span className="absolute bottom-5 left-4 inline-block w-0.5 h-4 bg-brand-teal animate-pulse" />
-                )}
+              <div className="bg-white border border-gray-200 rounded-lg px-6 py-6 dark:bg-brand-navy dark:border-brand-teal/30" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+                {coverLetterText
+                  .split(/\n{2,}/)
+                  .filter(p => p.trim())
+                  .map((para, i, arr) => {
+                    const lines = para.split('\n').filter(l => l.trim())
+                    const isLast = i === arr.length - 1
+                    return (
+                      <p key={i} className="text-sm text-gray-800 leading-relaxed mb-4 last:mb-0 dark:text-gray-200">
+                        {lines.map((line, j) => (
+                          <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
+                        ))}
+                        {isLast && clStreaming && <span className="animate-pulse ml-0.5">|</span>}
+                      </p>
+                    )
+                  })}
               </div>
               {!clStreaming && coverLetterText && (
                 <button
@@ -721,6 +727,7 @@ export default function JobDetailPage() {
           )}
         </div>
       )}
+
     </div>
   )
 }

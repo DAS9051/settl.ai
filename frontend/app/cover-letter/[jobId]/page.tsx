@@ -128,14 +128,35 @@ export default function CoverLetterPage() {
 
       {/* Cover letter display */}
       {coverLetter && (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-          <pre
-            className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm"
-            style={{ fontFamily: 'inherit' }}
-          >
-            {coverLetter}
-            {streaming && <span className="animate-pulse">|</span>}
-          </pre>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-4">
+          {/* Letter paper styling */}
+          <div className="px-10 py-10" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            {coverLetter
+              .split(/\n{2,}/)
+              .filter(p => p.trim())
+              .map((para, i) => {
+                const lines = para.split('\n').filter(l => l.trim())
+                const isLastPara = i === coverLetter.split(/\n{2,}/).filter(p => p.trim()).length - 1
+                return (
+                  <p
+                    key={i}
+                    className="text-gray-800 leading-relaxed mb-5 last:mb-0"
+                    style={{ fontSize: '15px' }}
+                  >
+                    {lines.map((line, j) => (
+                      <span key={j}>
+                        {line}
+                        {j < lines.length - 1 && <br />}
+                      </span>
+                    ))}
+                    {isLastPara && streaming && <span className="animate-pulse ml-0.5">|</span>}
+                  </p>
+                )
+              })}
+            {streaming && coverLetter.endsWith('\n') && (
+              <span className="animate-pulse text-gray-800" style={{ fontSize: '15px' }}>|</span>
+            )}
+          </div>
         </div>
       )}
 
