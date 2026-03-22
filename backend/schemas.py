@@ -43,8 +43,10 @@ class JobCreate(BaseModel):
 
 class JobOut(BaseModel):
     id: uuid.UUID
-    business_id: uuid.UUID
+    business_id: Optional[uuid.UUID] = None
     business_name: Optional[str] = None
+    clerk_user_id: Optional[str] = None
+    is_personal: bool = False
     title: str
     description: str
     location: str

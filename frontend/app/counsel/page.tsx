@@ -5,12 +5,14 @@ import { useAuth, useUser } from '@clerk/nextjs'
 import { getProfile, getCounsel } from '@/lib/api'
 import type { Profile, CounselResponse } from '@/lib/types'
 import CounselorResult from '@/components/CounselorResult'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const CACHE_KEY_PREFIX = 'counselResult_'
 
 export default function CounselPage() {
   const { getToken } = useAuth()
   const { user } = useUser()
+  const { t } = useLanguage()
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
@@ -83,18 +85,16 @@ export default function CounselPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">AI Career Counselor</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Get personalized career advice powered by Claude AI based on your profile
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.counselTitle}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t.counselSubtitle}</p>
       </div>
 
       {/* Profile Summary */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Your Profile Summary</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">{t.counselProfileSummary}</h2>
 
         {profileLoading ? (
-          <p className="text-sm text-gray-400">Loading profile...</p>
+          <p className="text-sm text-gray-400">{t.counselLoadingProfile}</p>
         ) : profile === null ? (
           profileError ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600">
@@ -102,9 +102,9 @@ export default function CounselPage() {
             </div>
           ) : (
             <div className="text-sm text-gray-500">
-              <p className="mb-2">No profile found.</p>
+              <p className="mb-2">{t.counselNoProfile}</p>
               <a href="/profile" className="text-blue-700 underline">
-                Set up your profile
+                {t.counselSetupProfile}
               </a>{' '}
               to get personalized advice.
             </div>
@@ -112,7 +112,7 @@ export default function CounselPage() {
         ) : (
           <div className="space-y-3 text-sm">
             <div>
-              <span className="font-medium text-gray-700">Skills: </span>
+              <span className="font-medium text-gray-700">{t.counselSkills}: </span>
               {profile.skills.length > 0 ? (
                 <span className="text-gray-600">{profile.skills.join(', ')}</span>
               ) : (
@@ -120,7 +120,7 @@ export default function CounselPage() {
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">Target Roles: </span>
+              <span className="font-medium text-gray-700">{t.counselTargetRoles}: </span>
               {profile.target_roles.length > 0 ? (
                 <span className="text-gray-600">{profile.target_roles.join(', ')}</span>
               ) : (
@@ -128,7 +128,7 @@ export default function CounselPage() {
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">Certifications: </span>
+              <span className="font-medium text-gray-700">{t.counselCertifications}: </span>
               {profile.certifications.length > 0 ? (
                 <span className="text-gray-600">{profile.certifications.join(', ')}</span>
               ) : (
@@ -137,7 +137,7 @@ export default function CounselPage() {
             </div>
             {profile.education.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">Education: </span>
+                <span className="font-medium text-gray-700">{t.counselEducation}: </span>
                 <span className="text-gray-600">
                   {profile.education.map((e) => `${e.degree} at ${e.school}`).join(', ')}
                 </span>
@@ -145,7 +145,7 @@ export default function CounselPage() {
             )}
             {profile.experience.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">Experience: </span>
+                <span className="font-medium text-gray-700">{t.counselExperience}: </span>
                 <span className="text-gray-600">
                   {profile.experience.map((e) => `${e.role} at ${e.company}`).join(', ')}
                 </span>
@@ -153,7 +153,7 @@ export default function CounselPage() {
             )}
             <div className="pt-1">
               <a href="/profile" className="text-blue-700 text-xs underline">
-                Edit profile
+                {t.counselEditProfile}
               </a>
             </div>
           </div>
@@ -173,12 +173,12 @@ export default function CounselPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              Generating advice...
+              {t.counselGenerating}
             </>
           ) : result ? (
-            'Regenerate Advice'
+            t.counselRegenerate
           ) : (
-            'Get Career Advice'
+            t.counselGetAdvice
           )}
         </button>
         {result && (
@@ -186,7 +186,7 @@ export default function CounselPage() {
             onClick={handleClearCache}
             className="px-4 py-3 border border-gray-200 text-gray-500 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
           >
-            Clear
+            {t.clear}
           </button>
         )}
       </div>
@@ -194,7 +194,7 @@ export default function CounselPage() {
       {/* Cache timestamp */}
       {cachedAt && !counselLoading && (
         <p className="text-xs text-gray-400 mb-4 -mt-2">
-          Last generated {cachedAt.toLocaleDateString()} at {cachedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · Saved locally
+          Last generated {cachedAt.toLocaleDateString()} at {cachedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {t.counselSavedLocally}
         </p>
       )}
 

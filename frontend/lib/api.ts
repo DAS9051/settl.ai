@@ -370,3 +370,35 @@ export async function evaluateQuizAnswer(
 
   return res.json()
 }
+
+export async function getPersonalJobs(token: string | null): Promise<Job[]> {
+  const res = await fetch(`${API_URL}/api/jobs/personal`, {
+    headers: authHeaders(token),
+  })
+  if (!res.ok) throw new Error(`Failed to fetch tracked jobs: ${res.statusText}`)
+  const data = await res.json()
+  return data.jobs
+}
+
+export async function createPersonalJob(token: string | null, job: PostJobPayload): Promise<Job> {
+  const res = await fetch(`${API_URL}/api/jobs/personal`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(job),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || 'Failed to create tracked job')
+  }
+  return res.json()
+}
+
+export async function deletePersonalJob(token: string | null, jobId: string): Promise<void> {
+  const headers: HeadersInit = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  const res = await fetch(`${API_URL}/api/jobs/personal/${jobId}`, {
+    method: 'DELETE',
+    headers,
+  })
+  if (!res.ok) throw new Error('Failed to delete tracked job')
+}

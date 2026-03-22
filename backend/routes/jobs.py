@@ -35,10 +35,71 @@ ADMIN_KEY = os.environ.get("ADMIN_KEY", "hackathon-admin-secret")
 def _job_to_out(job: Job, db: Session) -> JobOut:
     """Convert a Job ORM object to JobOut, populating business_name."""
     out = JobOut.model_validate(job)
-    business = db.query(Business).filter(Business.id == job.business_id).first()
-    if business:
-        out.business_name = business.name
+    if job.business_id is not None:
+        business = db.query(Business).filter(Business.id == job.business_id).first()
+        if business:
+            out.business_name = business.name
     return out
+
+
+@router.get("/personal", response_model=JobListOut)
+def list_personal_jobs(
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """List all personal tracked jobs for the authenticated user."""
+    clerk_user_id: str = current_user.get("sub") or ""
+    if not clerk_user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: missing sub claim.")
+    jobs = db.query(Job).filter(
+        Job.is_personal == True,
+        Job.clerk_user_id == clerk_user_id,
+    ).order_by(Job.created_at.desc()).all()
+    return JobListOut(jobs=[_job_to_out(j, db) for j in jobs], total=len(jobs))
+
+
+@router.post("/personal", response_model=JobOut, status_code=status.HTTP_201_CREATED)
+def create_personal_job(
+    payload: JobCreate,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Create a personal tracked job visible only to the authenticated user."""
+    clerk_user_id: str = current_user.get("sub") or ""
+    if not clerk_user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: missing sub claim.")
+    job = Job(
+        business_id=None,
+        clerk_user_id=clerk_user_id,
+        is_personal=True,
+        title=payload.title,
+        description=payload.description,
+        location=payload.location,
+        salary_range=payload.salary_range,
+        skills_required=payload.skills_required,
+        verified=False,
+    )
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    return _job_to_out(job, db)
+
+
+@router.delete("/personal/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_personal_job(
+    job_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user_dep),
+    db: Session = Depends(get_db),
+):
+    """Delete a personal tracked job. Only the owner can delete it."""
+    clerk_user_id: str = current_user.get("sub") or ""
+    if not clerk_user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: missing sub claim.")
+    job = db.query(Job).filter(Job.id == job_id, Job.clerk_user_id == clerk_user_id, Job.is_personal == True).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
+    db.delete(job)
+    db.commit()
 
 
 @router.get("", response_model=JobListOut)
@@ -49,8 +110,8 @@ def list_jobs(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
-    """List all verified jobs. Public endpoint — no authentication required."""
-    query = db.query(Job).filter(Job.verified == True)
+    """List all verified public jobs. Personal jobs are excluded."""
+    query = db.query(Job).filter(Job.verified == True, Job.is_personal == False)
 
     if location:
         query = query.filter(Job.location.ilike(f"%{location}%"))
@@ -113,8 +174,11 @@ def get_job(
     job_id: str,
     db: Session = Depends(get_db),
 ):
-    """Return a single job by ID. Public endpoint — no authentication required."""
-    job = db.query(Job).filter(Job.id == job_id).first()
+    """Return a single job by ID. Public endpoint — no authentication required.
+
+    Personal jobs are never served here; callers should use GET /jobs/personal for those.
+    """
+    job = db.query(Job).filter(Job.id == job_id, Job.is_personal == False).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
     return _job_to_out(job, db)

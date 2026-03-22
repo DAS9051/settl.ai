@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser } from '@clerk/nextjs'
-import { postJob } from '@/lib/api'
+import { postJob, registerBusiness } from '@/lib/api'
+import type { Business } from '@/lib/types'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const inputClass =
   'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
@@ -22,11 +25,26 @@ export default function PostJobPage() {
   const [skillsInput, setSkillsInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [businessLoading, setBusinessLoading] = useState(true)
 
-  const isBusinessUser =
-    isLoaded &&
-    user !== null &&
-    (user.publicMetadata as { role?: string })?.role === 'business'
+  useEffect(() => {
+    async function fetchBusiness() {
+      try {
+        const token = await getToken()
+        const res = await fetch(`${API_URL}/api/businesses/me`, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        })
+        if (res.ok) setBusiness(await res.json())
+      } catch {
+        // no business registered
+      } finally {
+        setBusinessLoading(false)
+      }
+    }
+    if (isLoaded && user) fetchBusiness()
+    else if (isLoaded) setBusinessLoading(false)
+  }, [isLoaded, user, getToken])
 
   if (isLoaded && !user) {
     return (
@@ -36,12 +54,20 @@ export default function PostJobPage() {
     )
   }
 
-  if (isLoaded && !isBusinessUser) {
+  if (businessLoading) {
+    return (
+      <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
+        Checking business account...
+      </div>
+    )
+  }
+
+  if (!business) {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
         <h1 className="text-2xl font-bold text-gray-900 mb-3">Business Account Required</h1>
         <p className="text-gray-500 text-sm mb-6">
-          Only verified business accounts can post jobs. Register your business first.
+          Only registered business accounts can post jobs. Register your business first.
         </p>
         <a
           href="/business/register"

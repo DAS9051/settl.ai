@@ -6,8 +6,10 @@ import { useUser } from '@clerk/nextjs'
 import { getJobs } from '@/lib/api'
 import type { Job, JobFilters } from '@/lib/types'
 import JobCard from '@/components/JobCard'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function JobsPage() {
+  const { t } = useLanguage()
   const { user, isLoaded } = useUser()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,8 +57,8 @@ export default function JobsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Job Board</h1>
-          <p className="text-sm text-gray-500 mt-1">Browse local business opportunities</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.jobsTitle}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t.jobsSubtitle}</p>
         </div>
         {isBusinessUser && (
           <Link
@@ -79,7 +81,7 @@ export default function JobsPage() {
           </svg>
           <input
             type="text"
-            placeholder="Filter by skill (e.g. React)"
+            placeholder={t.jobsFilterSkill}
             value={skillFilter}
             onChange={(e) => setSkillFilter(e.target.value)}
             className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -92,7 +94,7 @@ export default function JobsPage() {
           </svg>
           <input
             type="text"
-            placeholder="Filter by location (e.g. Austin)"
+            placeholder={t.jobsFilterLocation}
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
             className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -102,14 +104,14 @@ export default function JobsPage() {
           type="submit"
           className="px-5 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
         >
-          Search
+          {t.jobsSearch}
         </button>
         <button
           type="button"
           onClick={handleClear}
           className="px-5 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
         >
-          Clear
+          {t.jobsClear}
         </button>
       </form>
 

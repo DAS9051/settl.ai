@@ -10,7 +10,9 @@ class Job(Base):
     __tablename__ = "jobs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False)
+    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=True)
+    clerk_user_id = Column(String, nullable=True)
+    is_personal = Column(Boolean, default=False, nullable=False, server_default="false")
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
     location = Column(String, nullable=False)

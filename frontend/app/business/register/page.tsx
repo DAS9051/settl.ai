@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { registerBusiness } from '@/lib/api'
 import type { Business } from '@/lib/types'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const inputClass =
   'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
 
 export default function RegisterBusinessPage() {
   const { getToken } = useAuth()
+  const { t } = useLanguage()
 
   const [name, setName] = useState('')
   const [contactEmail, setContactEmail] = useState('')
@@ -42,7 +44,7 @@ export default function RegisterBusinessPage() {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
         <div className="text-5xl mb-4">🎉</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">Business Registered!</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">{t.bizRegistered}</h1>
         <p className="text-gray-500 text-sm mb-2">
           <strong>{registered.name}</strong> has been submitted for verification.
         </p>
@@ -62,10 +64,8 @@ export default function RegisterBusinessPage() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Register Your Business</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Create a business account to start posting job listings
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.bizTitle}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t.bizSubtitle}</p>
       </div>
 
       <form
@@ -80,7 +80,7 @@ export default function RegisterBusinessPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Company Name <span className="text-red-500">*</span>
+            {t.bizCompanyName} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -94,7 +94,7 @@ export default function RegisterBusinessPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Contact Email <span className="text-red-500">*</span>
+            {t.bizEmail} <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -108,7 +108,7 @@ export default function RegisterBusinessPage() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Business Registration Number{' '}
+            {t.bizNumber}{' '}
             <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <input
@@ -118,9 +118,7 @@ export default function RegisterBusinessPage() {
             placeholder="e.g. 123456789"
             className={inputClass}
           />
-          <p className="text-xs text-gray-400 mt-1">
-            Providing your Canadian business registration number will auto-verify your account and add a verified badge to your job listings.
-          </p>
+          <p className="text-xs text-gray-400 mt-1">{t.bizNumberHint}</p>
         </div>
 
         <button
@@ -128,7 +126,7 @@ export default function RegisterBusinessPage() {
           disabled={submitting}
           className="w-full py-3 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? 'Registering...' : 'Register Business'}
+          {submitting ? t.bizRegistering : t.bizRegister}
         </button>
       </form>
 

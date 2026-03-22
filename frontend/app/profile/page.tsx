@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { getProfile, updateProfile } from '@/lib/api'
 import type { Profile, EducationEntry, ExperienceEntry } from '@/lib/types'
+import { useLanguage } from '@/contexts/LanguageContext'
+import type { Language } from '@/lib/translations'
 
 const emptyEducation = (): EducationEntry => ({ school: '', degree: '', year: '' })
 const emptyExperience = (): ExperienceEntry => ({
@@ -19,6 +21,7 @@ const inputClass =
 
 export default function ProfilePage() {
   const { getToken } = useAuth()
+  const { t, setLanguage } = useLanguage()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -40,7 +43,9 @@ export default function ProfilePage() {
         setSkillsInput(data.skills.join(', '))
         setCertificationsInput(data.certifications.join(', '))
         setTargetRolesInput(data.target_roles.join(', '))
-        setPreferredLanguage(data.preferred_language || 'English')
+        const lang = data.preferred_language || 'English'
+        setPreferredLanguage(lang)
+        setLanguage(lang as Language)
         setEducation(data.education.length > 0 ? data.education : [emptyEducation()])
         setExperience(data.experience.length > 0 ? data.experience : [emptyExperience()])
       } catch {
@@ -76,6 +81,7 @@ export default function ProfilePage() {
         experience: experience.filter((e) => e.company.trim() || e.role.trim()),
       }
       await updateProfile(token, profile)
+      setLanguage(preferredLanguage as Language)
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
@@ -154,15 +160,15 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-        <p className="text-sm text-gray-500 mt-1">Keep your profile up to date for better AI career advice</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.profileTitle}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t.profileSubtitle}</p>
       </div>
 
       {/* Profile Completeness Bar */}
       {!loading && (
         <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-gray-700">Profile Completeness</span>
+            <span className="text-sm font-semibold text-gray-700">{t.profileCompleteness}</span>
             <span
               className={`text-sm font-bold ${
                 completenessPercent === 100
@@ -187,7 +193,7 @@ export default function ProfilePage() {
             </p>
           )}
           {completenessPercent === 100 && (
-            <p className="text-xs text-green-600 mt-2 font-medium">Your profile is complete!</p>
+            <p className="text-xs text-green-600 mt-2 font-medium">{t.profileComplete}</p>
           )}
         </div>
       )}
@@ -198,50 +204,50 @@ export default function ProfilePage() {
         )}
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-700">
-            Profile saved successfully!
+            {t.profileSaved}
           </div>
         )}
 
         {/* Skills */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Skills</h2>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileSkills}</h2>
           <input
             type="text"
             value={skillsInput}
             onChange={(e) => setSkillsInput(e.target.value)}
-            placeholder="e.g. JavaScript, Python, SQL (comma-separated)"
+            placeholder={t.profileSkillsPlaceholder}
             className={inputClass}
           />
         </div>
 
         {/* Target Roles */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Target Roles</h2>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileTargetRoles}</h2>
           <input
             type="text"
             value={targetRolesInput}
             onChange={(e) => setTargetRolesInput(e.target.value)}
-            placeholder="e.g. Software Engineer, Data Analyst (comma-separated)"
+            placeholder={t.profileTargetRolesPlaceholder}
             className={inputClass}
           />
         </div>
 
         {/* Certifications */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Certifications</h2>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileCertifications}</h2>
           <input
             type="text"
             value={certificationsInput}
             onChange={(e) => setCertificationsInput(e.target.value)}
-            placeholder="e.g. AWS Solutions Architect, PMP (comma-separated)"
+            placeholder={t.profileCertificationsPlaceholder}
             className={inputClass}
           />
         </div>
 
         {/* Preferred Language */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Preferred Language</h2>
-          <p className="text-xs text-gray-400 mb-3">AI responses (career advice, interview prep, etc.) will be in this language.</p>
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profilePreferredLanguage}</h2>
+          <p className="text-xs text-gray-400 mb-3">{t.profileLanguageHint}</p>
           <select
             value={preferredLanguage}
             onChange={(e) => setPreferredLanguage(e.target.value)}
@@ -254,19 +260,20 @@ export default function ProfilePage() {
             <option value="Tagalog">Tagalog</option>
             <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
             <option value="Mandarin (Simplified)">中文简体 (Mandarin Simplified)</option>
+            <option value="Korean">한국어 (Korean)</option>
           </select>
         </div>
 
         {/* Education */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Education</h2>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{t.profileEducation}</h2>
             <button
               type="button"
               onClick={addEducation}
               className="text-sm text-blue-700 font-medium hover:underline"
             >
-              + Add
+              {t.add}
             </button>
           </div>
           <div className="space-y-4">
@@ -278,7 +285,7 @@ export default function ProfilePage() {
                     onClick={() => removeEducation(idx)}
                     className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xs"
                   >
-                    Remove
+                    {t.remove}
                   </button>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -312,13 +319,13 @@ export default function ProfilePage() {
         {/* Experience */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Experience</h2>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{t.profileExperience}</h2>
             <button
               type="button"
               onClick={addExperience}
               className="text-sm text-blue-700 font-medium hover:underline"
             >
-              + Add
+              {t.add}
             </button>
           </div>
           <div className="space-y-4">
@@ -330,7 +337,7 @@ export default function ProfilePage() {
                     onClick={() => removeExperience(idx)}
                     className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xs"
                   >
-                    Remove
+                    {t.remove}
                   </button>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -380,7 +387,7 @@ export default function ProfilePage() {
           disabled={saving}
           className="w-full py-3 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {saving ? 'Saving...' : 'Save Profile'}
+          {saving ? t.profileSaving : t.profileSave}
         </button>
       </form>
     </div>

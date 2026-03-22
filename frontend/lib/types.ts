@@ -1,6 +1,9 @@
 export interface Job {
   id: string
-  business_id: string
+  business_id?: string | null
+  business_name?: string
+  clerk_user_id?: string | null
+  is_personal?: boolean
   title: string
   description: string
   location: string
@@ -8,7 +11,6 @@ export interface Job {
   skills_required: string[]
   verified: boolean
   created_at: string
-  business_name?: string
 }
 
 export interface EducationEntry {
@@ -58,7 +60,7 @@ export interface PostJobPayload {
   title: string
   description: string
   location: string
-  salary_range: string
+  salary_range: string | null
   skills_required: string[]
 }
 

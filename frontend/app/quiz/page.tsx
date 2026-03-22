@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getQuizQuestion, evaluateQuizAnswer } from '@/lib/api'
 import type { QuizQuestion, QuizEvaluationResponse } from '@/lib/types'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const CATEGORIES = [
   'Email etiquette',
@@ -32,6 +33,7 @@ function Spinner() {
 }
 
 export default function QuizPage() {
+  const { t } = useLanguage()
   const [question, setQuestion] = useState<QuizQuestion | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,21 +105,19 @@ export default function QuizPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Cultural Guide</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t.quizTitle}</h1>
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
             <span className="text-xl">🔥</span>
             <span className="text-lg font-bold text-amber-700">{streak}</span>
-            <span className="text-xs text-amber-600 font-medium">streak</span>
+            <span className="text-xs text-amber-600 font-medium">{t.quizStreak}</span>
           </div>
         </div>
-        <p className="text-sm text-gray-500">
-          Learn Canadian workplace culture one question at a time. Build your knowledge while respecting your own background.
-        </p>
+        <p className="text-sm text-gray-500">{t.quizSubtitle}</p>
       </div>
 
       {/* Category filters */}
       <div className="mb-6">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Choose a topic</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t.quizTopic}</p>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => { setSelectedCategory(null); }}
@@ -127,7 +127,7 @@ export default function QuizPage() {
                 : 'border-gray-200 text-gray-600 hover:border-gray-400'
             }`}
           >
-            Random
+            {t.quizRandom}
           </button>
           {CATEGORIES.map((cat) => (
             <button
@@ -157,7 +157,7 @@ export default function QuizPage() {
             onClick={() => loadQuestion()}
             className="px-8 py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
           >
-            Start Quiz
+            {t.quizStart}
           </button>
         </div>
       )}
@@ -166,7 +166,7 @@ export default function QuizPage() {
         <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">
           <div className="flex items-center justify-center gap-3 text-gray-400">
             <Spinner />
-            <span className="text-sm">Generating question...</span>
+            <span className="text-sm">{t.quizGenerating}</span>
           </div>
         </div>
       )}
@@ -213,7 +213,7 @@ export default function QuizPage() {
 
           {evaluating && (
             <div className="flex items-center gap-2 text-gray-400 text-sm py-2">
-              <Spinner /> Checking your answer...
+              <Spinner /> {t.quizChecking}
             </div>
           )}
 
@@ -223,7 +223,7 @@ export default function QuizPage() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">{evaluation.correct ? '🎉' : '💡'}</span>
                 <span className={`text-sm font-bold ${evaluation.correct ? 'text-green-700' : 'text-amber-700'}`}>
-                  {evaluation.correct ? 'Correct!' : 'Not quite'}
+                  {evaluation.correct ? t.quizCorrect : t.quizIncorrect}
                 </span>
               </div>
               <p className="text-sm text-gray-700 leading-relaxed">{evaluation.feedback}</p>
@@ -236,7 +236,7 @@ export default function QuizPage() {
               onClick={() => loadQuestion()}
               className="w-full py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
             >
-              Next Question →
+              {t.quizNext}
             </button>
           )}
         </div>
@@ -244,7 +244,7 @@ export default function QuizPage() {
 
       {/* Tips footer */}
       <div className="mt-6 text-center text-xs text-gray-400">
-        Your streak is saved locally on this device. Keep it going!
+        {t.quizStreakNote}
       </div>
     </div>
   )
