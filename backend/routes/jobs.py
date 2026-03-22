@@ -1,4 +1,5 @@
 import os
+import uuid
 from typing import Dict, Any, List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -95,6 +96,10 @@ def delete_personal_job(
     clerk_user_id: str = current_user.get("sub") or ""
     if not clerk_user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token: missing sub claim.")
+    try:
+        uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
     job = db.query(Job).filter(Job.id == job_id, Job.clerk_user_id == clerk_user_id, Job.is_personal == True).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
@@ -178,6 +183,10 @@ def get_job(
 
     Personal jobs are never served here; callers should use GET /jobs/personal for those.
     """
+    try:
+        uuid.UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")
     job = db.query(Job).filter(Job.id == job_id, Job.is_personal == False).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found.")

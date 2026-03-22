@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 
@@ -18,10 +19,22 @@ from routes import businesses, counsel, jobs, profile, resume, insights
 from routes import auth as auth_router
 from routes import quiz as quiz_router
 
+
+# ---------------------------------------------------------------------------
+# Startup: create tables
+# ---------------------------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="settl.ai API",
     description="AI career counselor + local business job board",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -37,14 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ---------------------------------------------------------------------------
-# Startup: create tables
-# ---------------------------------------------------------------------------
-
-@app.on_event("startup")
-def on_startup():
-    Base.metadata.create_all(bind=engine)
 
 
 # ---------------------------------------------------------------------------

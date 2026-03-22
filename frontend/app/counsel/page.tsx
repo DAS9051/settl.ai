@@ -112,7 +112,7 @@ export default function CounselPage() {
         ) : (
           <div className="space-y-3 text-sm">
             <div>
-              <span className="font-medium text-gray-700">{t.counselSkills}: </span>
+              <span className="font-bold text-gray-900">{t.counselSkills}: </span>
               {profile.skills.length > 0 ? (
                 <span className="text-gray-600">{profile.skills.join(', ')}</span>
               ) : (
@@ -120,7 +120,7 @@ export default function CounselPage() {
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">{t.counselTargetRoles}: </span>
+              <span className="font-bold text-gray-900">{t.counselTargetRoles}: </span>
               {profile.target_roles.length > 0 ? (
                 <span className="text-gray-600">{profile.target_roles.join(', ')}</span>
               ) : (
@@ -128,7 +128,7 @@ export default function CounselPage() {
               )}
             </div>
             <div>
-              <span className="font-medium text-gray-700">{t.counselCertifications}: </span>
+              <span className="font-bold text-gray-900">{t.counselCertifications}: </span>
               {profile.certifications.length > 0 ? (
                 <span className="text-gray-600">{profile.certifications.join(', ')}</span>
               ) : (
@@ -137,7 +137,7 @@ export default function CounselPage() {
             </div>
             {profile.education.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">{t.counselEducation}: </span>
+                <span className="font-bold text-gray-900">{t.counselEducation}: </span>
                 <span className="text-gray-600">
                   {profile.education.map((e) => `${e.degree} at ${e.school}`).join(', ')}
                 </span>
@@ -145,7 +145,7 @@ export default function CounselPage() {
             )}
             {profile.experience.length > 0 && (
               <div>
-                <span className="font-medium text-gray-700">{t.counselExperience}: </span>
+                <span className="font-bold text-gray-900">{t.counselExperience}: </span>
                 <span className="text-gray-600">
                   {profile.experience.map((e) => `${e.role} at ${e.company}`).join(', ')}
                 </span>

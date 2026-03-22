@@ -25,17 +25,21 @@ def register_business(
     """
     clerk_user_id: str = current_user.get("sub", "")
 
-    existing = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A business is already registered for this account.",
-        )
-
     is_valid_bn = bool(
         payload.business_number
         and re.match(r'^\d{9}', payload.business_number.strip())
     )
+
+    existing = db.query(Business).filter(Business.clerk_user_id == clerk_user_id).first()
+    if existing:
+        existing.name = payload.name
+        existing.contact_email = payload.contact_email
+        existing.business_number = payload.business_number
+        existing.verified = is_valid_bn
+        db.commit()
+        db.refresh(existing)
+        return BusinessOut.model_validate(existing)
+
     business = Business(
         clerk_user_id=clerk_user_id,
         name=payload.name,

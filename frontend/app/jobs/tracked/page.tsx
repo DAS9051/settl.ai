@@ -7,7 +7,7 @@ import { getPersonalJobs, createPersonalJob, deletePersonalJob } from '@/lib/api
 import type { Job } from '@/lib/types'
 
 const inputClass =
-  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
+  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal'
 
 export default function TrackedJobsPage() {
   const { getToken } = useAuth()
@@ -100,7 +100,7 @@ export default function TrackedJobsPage() {
         </div>
         <button
           onClick={() => setShowForm(v => !v)}
-          className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
         >
           {showForm ? 'Cancel' : '+ Track a Job'}
         </button>
@@ -177,7 +177,7 @@ export default function TrackedJobsPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full py-2.5 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors disabled:opacity-50"
           >
             {submitting ? 'Adding...' : 'Add to Tracker'}
           </button>
@@ -203,7 +203,7 @@ export default function TrackedJobsPage() {
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="px-6 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
           >
             + Track Your First Job
           </button>
@@ -213,12 +213,12 @@ export default function TrackedJobsPage() {
           {jobs.map(job => (
             <div
               key={job.id}
-              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:border-blue-200 transition-colors"
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:border-brand-teal transition-colors"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-indigo-100 text-indigo-700 font-medium px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-brand-teal-light/30 text-brand-teal-dark font-medium px-2 py-0.5 rounded-full">
                       Personal
                     </span>
                     {job.location && (
@@ -232,7 +232,7 @@ export default function TrackedJobsPage() {
                   {job.skills_required.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {job.skills_required.slice(0, 5).map(skill => (
-                        <span key={skill} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                        <span key={skill} className="text-xs bg-brand-cream-light text-brand-navy px-2 py-0.5 rounded-full">
                           {skill}
                         </span>
                       ))}
@@ -245,7 +245,7 @@ export default function TrackedJobsPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => router.push(`/jobs/${job.id}`)}
-                    className="px-3 py-1.5 text-xs font-semibold text-blue-800 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="px-3 py-1.5 text-xs font-semibold text-brand-navy border border-brand-teal/40 rounded-lg hover:bg-brand-cream-light transition-colors"
                   >
                     AI Tools →
                   </button>

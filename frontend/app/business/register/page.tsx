@@ -7,7 +7,7 @@ import type { Business } from '@/lib/types'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 const inputClass =
-  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
+  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal'
 
 export default function RegisterBusinessPage() {
   const { getToken } = useAuth()
@@ -53,7 +53,7 @@ export default function RegisterBusinessPage() {
         </p>
         <a
           href="/jobs"
-          className="px-6 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-6 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
         >
           Browse Jobs
         </a>
@@ -124,7 +124,7 @@ export default function RegisterBusinessPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-3 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? t.bizRegistering : t.bizRegister}
         </button>

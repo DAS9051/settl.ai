@@ -57,13 +57,13 @@ export default function JobsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t.jobsTitle}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t.jobsSubtitle}</p>
+          <h1 className="text-3xl font-bold text-brand-navy dark:text-brand-cream">{t.jobsTitle}</h1>
+          <p className="text-sm text-gray-500 mt-1 dark:text-brand-sage">{t.jobsSubtitle}</p>
         </div>
         {isBusinessUser && (
           <Link
             href="/jobs/post"
-            className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
           >
             + Post a Job
           </Link>
@@ -73,7 +73,7 @@ export default function JobsPage() {
       {/* Filters */}
       <form
         onSubmit={handleSearch}
-        className="bg-white rounded-xl border border-gray-200 p-4 mb-6 flex flex-col sm:flex-row gap-3 shadow-sm"
+        className="bg-white rounded-xl border-2 border-gray-200 p-4 mb-6 flex flex-col sm:flex-row gap-3 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30"
       >
         <div className="relative flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ export default function JobsPage() {
             placeholder={t.jobsFilterSkill}
             value={skillFilter}
             onChange={(e) => setSkillFilter(e.target.value)}
-            className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
           />
         </div>
         <div className="relative flex-1">
@@ -97,19 +97,19 @@ export default function JobsPage() {
             placeholder={t.jobsFilterLocation}
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
           />
         </div>
         <button
           type="submit"
-          className="px-5 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-5 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
         >
           {t.jobsSearch}
         </button>
         <button
           type="button"
           onClick={handleClear}
-          className="px-5 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+          className="px-5 py-2 border border-brand-teal/40 text-brand-teal rounded-lg text-sm font-semibold hover:bg-brand-teal/10 transition-colors dark:border-brand-teal/50 dark:text-brand-sage dark:hover:bg-brand-teal/20"
         >
           {t.jobsClear}
         </button>
@@ -120,7 +120,7 @@ export default function JobsPage() {
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+              <div key={i} className="bg-white rounded-xl border-2 border-gray-200 p-6 animate-pulse dark:bg-brand-navy-dark dark:border-brand-teal/20">
                 <div className="flex items-start justify-between mb-4">
                   <div className="space-y-2 flex-1">
                     <div className="h-5 bg-gray-200 rounded w-3/4" />
@@ -133,9 +133,9 @@ export default function JobsPage() {
                   <div className="h-3 bg-gray-100 rounded w-4/6" />
                 </div>
                 <div className="flex gap-2">
-                  <div className="h-5 bg-blue-50 rounded-full w-16" />
-                  <div className="h-5 bg-blue-50 rounded-full w-20" />
-                  <div className="h-5 bg-blue-50 rounded-full w-14" />
+                  <div className="h-5 bg-brand-cream-light rounded-full w-16" />
+                  <div className="h-5 bg-brand-cream-light rounded-full w-20" />
+                  <div className="h-5 bg-brand-cream-light rounded-full w-14" />
                 </div>
               </div>
             ))}
@@ -152,17 +152,17 @@ export default function JobsPage() {
           </button>
         </div>
       ) : jobs.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-16 text-center dark:bg-brand-navy-dark dark:border-brand-teal/20">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-brand-teal/10 flex items-center justify-center dark:bg-brand-teal/20">
+            <svg className="w-6 h-6 text-brand-teal dark:text-brand-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="text-gray-700 font-medium text-sm mb-1">No jobs found</p>
-          <p className="text-gray-400 text-xs mb-4">No listings match your current filters.</p>
+          <p className="text-brand-navy font-medium text-sm mb-1 dark:text-brand-cream">No jobs found</p>
+          <p className="text-gray-400 text-xs mb-4 dark:text-brand-sage/60">No listings match your current filters.</p>
           <button
             onClick={handleClear}
-            className="text-sm text-blue-700 underline"
+            className="text-sm text-brand-teal underline"
           >
             Clear filters
           </button>

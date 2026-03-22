@@ -15,12 +15,12 @@ const CATEGORIES = [
 ]
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Email etiquette': 'bg-blue-100 text-blue-700',
-  'Meeting norms': 'bg-purple-100 text-purple-700',
-  'Workplace dress code': 'bg-pink-100 text-pink-700',
-  'Jargon and slang': 'bg-indigo-100 text-indigo-700',
-  'Hierarchy and authority': 'bg-amber-100 text-amber-700',
-  'Time and punctuality': 'bg-teal-100 text-teal-700',
+  'Email etiquette': 'bg-brand-cream-light text-brand-navy',
+  'Meeting norms': 'bg-brand-sage-light text-brand-sage-dark',
+  'Workplace dress code': 'bg-brand-olive-light text-brand-olive-dark',
+  'Jargon and slang': 'bg-brand-teal-light/30 text-brand-teal-dark',
+  'Hierarchy and authority': 'bg-brand-cream text-brand-navy',
+  'Time and punctuality': 'bg-brand-sage-light text-brand-teal-dark',
 }
 
 function Spinner() {
@@ -92,8 +92,8 @@ export default function QuizPage() {
   function getOptionStyle(option: string) {
     if (!evaluation || !selectedAnswer) {
       return selectedAnswer === option
-        ? 'border-blue-500 bg-blue-50'
-        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+        ? 'border-brand-teal bg-brand-cream-light'
+        : 'border-gray-200 hover:border-brand-teal hover:bg-brand-cream-light cursor-pointer'
     }
     if (option === evaluation.correct_answer) return 'border-green-500 bg-green-50'
     if (option === selectedAnswer && !evaluation.correct) return 'border-red-500 bg-red-50'
@@ -105,26 +105,26 @@ export default function QuizPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{t.quizTitle}</h1>
+          <h1 className="text-3xl font-bold text-brand-navy dark:text-brand-cream">{t.quizTitle}</h1>
           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
             <span className="text-xl">🔥</span>
             <span className="text-lg font-bold text-amber-700">{streak}</span>
             <span className="text-xs text-amber-600 font-medium">{t.quizStreak}</span>
           </div>
         </div>
-        <p className="text-sm text-gray-500">{t.quizSubtitle}</p>
+        <p className="text-sm text-gray-500 dark:text-brand-sage">{t.quizSubtitle}</p>
       </div>
 
       {/* Category filters */}
       <div className="mb-6">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t.quizTopic}</p>
+        <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">{t.quizTopic}</p>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => { setSelectedCategory(null); }}
             className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
               selectedCategory === null
-                ? 'bg-gray-800 text-white border-gray-800'
-                : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                ? 'bg-brand-navy text-brand-cream border-brand-navy dark:bg-brand-teal dark:border-brand-teal'
+                : 'border-brand-teal/40 text-brand-navy hover:border-brand-teal hover:bg-brand-teal/10 dark:border-brand-teal/30 dark:text-brand-sage dark:hover:border-brand-teal/60'
             }`}
           >
             {t.quizRandom}
@@ -135,8 +135,8 @@ export default function QuizPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
                 selectedCategory === cat
-                  ? 'bg-gray-800 text-white border-gray-800'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                  ? 'bg-brand-navy text-brand-cream border-brand-navy dark:bg-brand-teal dark:border-brand-teal'
+                  : 'border-brand-teal/40 text-brand-navy hover:border-brand-teal hover:bg-brand-teal/10 dark:border-brand-teal/30 dark:text-brand-sage dark:hover:border-brand-teal/60'
               }`}
             >
               {cat}
@@ -147,15 +147,15 @@ export default function QuizPage() {
 
       {/* Question card */}
       {!question && !loading && !error && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 p-10 text-center shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="text-5xl mb-4">🍁</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Ready to learn?</h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <h2 className="text-xl font-bold text-brand-navy mb-2 dark:text-brand-cream">Ready to learn?</h2>
+          <p className="text-sm text-gray-500 mb-6 dark:text-brand-sage">
             Each question covers a real aspect of Canadian work culture with encouraging feedback.
           </p>
           <button
             onClick={() => loadQuestion()}
-            className="px-8 py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="px-8 py-3 bg-brand-navy text-white rounded-xl text-sm font-semibold hover:bg-brand-navy-light transition-colors"
           >
             {t.quizStart}
           </button>
@@ -163,8 +163,8 @@ export default function QuizPage() {
       )}
 
       {loading && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">
-          <div className="flex items-center justify-center gap-3 text-gray-400">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 p-10 text-center shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
+          <div className="flex items-center justify-center gap-3 text-gray-400 dark:text-brand-sage">
             <Spinner />
             <span className="text-sm">{t.quizGenerating}</span>
           </div>
@@ -179,7 +179,7 @@ export default function QuizPage() {
       )}
 
       {question && !loading && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           {/* Category badge */}
           <div className="mb-4">
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${CATEGORY_COLORS[question.category] || 'bg-gray-100 text-gray-600'}`}>
@@ -188,7 +188,7 @@ export default function QuizPage() {
           </div>
 
           {/* Question */}
-          <h2 className="text-lg font-semibold text-gray-900 mb-5 leading-relaxed">{question.question}</h2>
+          <h2 className="text-lg font-semibold text-brand-navy mb-5 leading-relaxed dark:text-brand-cream">{question.question}</h2>
 
           {/* Options */}
           <div className="space-y-3 mb-5">
@@ -234,7 +234,7 @@ export default function QuizPage() {
           {evaluation && (
             <button
               onClick={() => loadQuestion()}
-              className="w-full py-3 bg-blue-800 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full py-3 bg-brand-navy text-white rounded-xl text-sm font-semibold hover:bg-brand-navy-light transition-colors"
             >
               {t.quizNext}
             </button>

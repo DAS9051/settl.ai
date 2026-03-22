@@ -246,7 +246,7 @@ export default function JobDetailPage() {
       {/* Back */}
       <Link
         href="/jobs"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-800 mb-6 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-brand-teal hover:text-brand-navy mb-6 transition-colors dark:text-brand-sage dark:hover:text-brand-cream"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -255,16 +255,16 @@ export default function JobDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4 shadow-sm">
+      <div className="bg-white rounded-xl border-2 border-gray-200 p-6 mb-4 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{job.title}</h1>
+            <h1 className="text-2xl font-bold text-brand-navy leading-tight dark:text-brand-cream">{job.title}</h1>
             {job.business_name && (
-              <p className="text-base text-blue-700 font-medium mt-1">{job.business_name}</p>
+              <p className="text-base text-brand-teal font-medium mt-1 dark:text-brand-sage">{job.business_name}</p>
             )}
           </div>
           {job.verified && (
-            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full">
+            <span className="shrink-0 inline-flex items-center gap-1 text-xs font-medium bg-brand-sage-light text-brand-sage-dark px-2 py-1 rounded-full">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -277,7 +277,7 @@ export default function JobDetailPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
+        <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4 dark:text-brand-sage/80">
           <span className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -297,17 +297,17 @@ export default function JobDetailPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {new Date(job.created_at).toLocaleDateString()}
+            {new Date(job.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
           </span>
         </div>
 
         {/* Skills */}
         {job.skills_required.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Skills Required</p>
+            <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Skills Required</p>
             <div className="flex flex-wrap gap-2">
               {job.skills_required.map((skill) => (
-                <span key={skill} className="text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-100">
+                <span key={skill} className="text-xs font-medium bg-brand-cream text-brand-navy px-2.5 py-1 rounded-full border border-brand-olive/40 dark:bg-brand-teal/25 dark:text-brand-cream dark:border-brand-teal/40">
                   {skill}
                 </span>
               ))}
@@ -317,8 +317,8 @@ export default function JobDetailPage() {
 
         {/* Description */}
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Description</p>
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{job.description}</p>
+          <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Description</p>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap dark:text-gray-300">{job.description}</p>
         </div>
 
         {/* Apply button */}
@@ -328,7 +328,7 @@ export default function JobDetailPage() {
               href={(job as Job & { apply_url?: string }).apply_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-6 py-2.5 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="inline-block px-6 py-2.5 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
             >
               Apply Now
             </a>
@@ -339,21 +339,21 @@ export default function JobDetailPage() {
       </div>
 
       {/* Salary Insight */}
-      <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border-2 border-gray-200 mb-4 overflow-hidden shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
         <button
           onClick={() => {
             setSalaryOpen((prev) => !prev)
             if (!salaryOpen && !salary) handleSalaryInsight()
           }}
-          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-brand-cream/10 transition-colors dark:hover:bg-brand-teal/10"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 rounded-lg bg-brand-sage-light flex items-center justify-center">
+              <svg className="w-4 h-4 text-brand-sage-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-gray-900">Salary Insight</span>
+            <span className="text-sm font-semibold text-brand-navy dark:text-brand-cream">Salary Insight</span>
           </div>
           <svg
             className={`w-4 h-4 text-gray-400 transition-transform ${salaryOpen ? 'rotate-180' : ''}`}
@@ -366,7 +366,7 @@ export default function JobDetailPage() {
         </button>
 
         {salaryOpen && (
-          <div className="px-6 pb-6 border-t border-gray-100">
+          <div className="px-6 pb-6 border-t border-gray-100 dark:border-brand-teal/20">
             {salaryLoading ? (
               <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
                 <Spinner /> Fetching salary data...
@@ -374,17 +374,17 @@ export default function JobDetailPage() {
             ) : salaryError ? (
               <div className="py-4">
                 <p className="text-sm text-red-600 mb-2">{salaryError}</p>
-                <button onClick={handleSalaryInsight} className="text-sm text-blue-700 underline">
+                <button onClick={handleSalaryInsight} className="text-sm text-brand-teal underline">
                   Retry
                 </button>
               </div>
             ) : salary ? (
               <div className="pt-4">
-                <p className="text-3xl font-bold text-gray-900 mb-1">
-                  ${salary.estimated_min.toLocaleString()} – ${salary.estimated_max.toLocaleString()}
+                <p className="text-3xl font-bold text-brand-navy mb-1 dark:text-brand-cream">
+                  ${salary.estimated_min.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')} – ${salary.estimated_max.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 </p>
                 <p className="text-sm text-gray-500 mb-3">
-                  Median: <span className="font-medium text-gray-700">${salary.median.toLocaleString()}</span>
+                  Median: <span className="font-medium text-gray-700">${salary.median.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
                 </p>
                 <p className="text-sm text-gray-600 leading-relaxed">{salary.notes}</p>
               </div>
@@ -392,7 +392,7 @@ export default function JobDetailPage() {
               <div className="py-4">
                 <button
                   onClick={handleSalaryInsight}
-                  className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors"
                 >
                   Get Salary Estimate
                 </button>
@@ -403,21 +403,21 @@ export default function JobDetailPage() {
       </div>
 
       {/* Jargon Translator — public */}
-      <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border-2 border-gray-200 mb-4 overflow-hidden shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
         <button
           onClick={() => {
             setJargonOpen((prev) => !prev)
             if (!jargonOpen && !jargon) handleJargonTranslate()
           }}
-          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-brand-cream/10 transition-colors dark:hover:bg-brand-teal/10"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-              <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 rounded-lg bg-brand-teal-light/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-gray-900">Translate Workplace Jargon</span>
+            <span className="text-sm font-semibold text-brand-navy dark:text-brand-cream">Translate Workplace Jargon</span>
           </div>
           <svg
             className={`w-4 h-4 text-gray-400 transition-transform ${jargonOpen ? 'rotate-180' : ''}`}
@@ -428,7 +428,7 @@ export default function JobDetailPage() {
         </button>
 
         {jargonOpen && (
-          <div className="px-6 pb-6 border-t border-gray-100">
+          <div className="px-6 pb-6 border-t border-gray-100 dark:border-brand-teal/20">
             {jargonLoading ? (
               <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
                 <Spinner /> Analyzing jargon...
@@ -436,21 +436,21 @@ export default function JobDetailPage() {
             ) : jargonError ? (
               <div className="py-4">
                 <p className="text-sm text-red-600 mb-2">{jargonError}</p>
-                <button onClick={handleJargonTranslate} className="text-sm text-blue-700 underline">Retry</button>
+                <button onClick={handleJargonTranslate} className="text-sm text-brand-teal underline">Retry</button>
               </div>
             ) : jargon ? (
               <div className="pt-4 space-y-4">
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Annotated Description</p>
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap bg-indigo-50 rounded-lg p-3">{jargon.translated}</p>
+                  <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Annotated Description</p>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap bg-brand-cream-light rounded-lg p-3">{jargon.translated}</p>
                 </div>
                 {jargon.glossary.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Glossary</p>
+                    <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Glossary</p>
                     <div className="space-y-2">
                       {jargon.glossary.map((g, i) => (
                         <div key={i} className="flex gap-2 text-sm">
-                          <span className="font-semibold text-indigo-700 shrink-0">"{g.term}"</span>
+                          <span className="font-semibold text-brand-teal shrink-0">"{g.term}"</span>
                           <span className="text-gray-600">— {g.explanation}</span>
                         </div>
                       ))}
@@ -468,19 +468,19 @@ export default function JobDetailPage() {
 
       {/* Skills Gap — signed-in only */}
       {isSignedIn && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4 shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 mb-4 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-              <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 rounded-lg bg-brand-navy/10 flex items-center justify-center dark:bg-brand-teal/20">
+              <svg className="w-4 h-4 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h2 className="text-base font-semibold text-gray-900">Skills Gap Analysis</h2>
+            <h2 className="text-base font-semibold text-brand-navy dark:text-brand-cream">Skills Gap Analysis</h2>
           </div>
           <button
             onClick={handleSkillsGap}
             disabled={gapLoading}
-            className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {gapLoading ? (
               <>
@@ -499,10 +499,10 @@ export default function JobDetailPage() {
             <div className="mt-5 space-y-4">
               {gap.matching_skills.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Matching Skills</p>
+                  <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Matching Skills</p>
                   <div className="flex flex-wrap gap-2">
                     {gap.matching_skills.map((s) => (
-                      <span key={s} className="text-xs font-medium bg-green-100 text-green-800 px-2.5 py-1 rounded-full border border-green-200">
+                      <span key={s} className="text-xs font-medium bg-brand-sage-light text-brand-sage-dark px-2.5 py-1 rounded-full border border-brand-sage">
                         {s}
                       </span>
                     ))}
@@ -512,7 +512,7 @@ export default function JobDetailPage() {
 
               {gap.missing_skills.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Missing Skills</p>
+                  <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Missing Skills</p>
                   <div className="flex flex-wrap gap-2">
                     {gap.missing_skills.map((s) => (
                       <span key={s} className="text-xs font-medium bg-red-100 text-red-800 px-2.5 py-1 rounded-full border border-red-200">
@@ -524,17 +524,17 @@ export default function JobDetailPage() {
               )}
 
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Analysis</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{gap.gap_analysis}</p>
+                <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-1 dark:text-brand-sage">Analysis</p>
+                <p className="text-sm text-gray-700 leading-relaxed dark:text-gray-300">{gap.gap_analysis}</p>
               </div>
 
               {gap.recommendations.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommendations</p>
+                  <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-2 dark:text-brand-sage">Recommendations</p>
                   <ol className="space-y-2">
                     {gap.recommendations.map((r, i) => (
                       <li key={i} className="flex gap-3 text-sm text-gray-700">
-                        <span className="shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-brand-cream-light text-brand-navy font-bold flex items-center justify-center text-xs">
                           {i + 1}
                         </span>
                         <span className="leading-relaxed pt-0.5">{r}</span>
@@ -547,19 +547,19 @@ export default function JobDetailPage() {
           )}
 
           {/* Interview Prep button — below skills gap */}
-          <div className="mt-6 pt-5 border-t border-gray-100">
+          <div className="mt-6 pt-5 border-t border-gray-100 dark:border-brand-teal/20">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 rounded-lg bg-brand-teal/10 flex items-center justify-center dark:bg-brand-teal/20">
+                <svg className="w-4 h-4 text-brand-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
               </div>
-              <h3 className="text-base font-semibold text-gray-900">Interview Prep</h3>
+              <h3 className="text-base font-semibold text-brand-navy dark:text-brand-cream">Interview Prep</h3>
             </div>
             <button
               onClick={handleInterviewPrep}
               disabled={prepLoading}
-              className="px-4 py-2 bg-sky-700 text-white rounded-lg text-sm font-semibold hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-brand-teal text-white rounded-lg text-sm font-semibold hover:bg-brand-teal-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {prepLoading ? (
                 <>
@@ -579,18 +579,18 @@ export default function JobDetailPage() {
                 {prep.questions.map((q, idx) => (
                   <div
                     key={idx}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-gray-200 rounded-lg overflow-hidden dark:border-brand-teal/20"
                   >
                     <button
                       onClick={() => toggleQuestion(idx)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-brand-cream/10 transition-colors dark:hover:bg-brand-teal/10"
                     >
-                      <span className="text-sm font-semibold text-gray-900 pr-4">{q.question}</span>
+                      <span className="text-sm font-semibold text-brand-navy pr-4 dark:text-brand-cream">{q.question}</span>
                       <ChevronDown open={openQuestions.has(idx)} />
                     </button>
                     {openQuestions.has(idx) && (
-                      <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{q.answer_framework}</p>
+                      <div className="px-4 pb-4 border-t border-gray-100 pt-3 dark:border-brand-teal/20">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap dark:text-gray-300">{q.answer_framework}</p>
                       </div>
                     )}
                   </div>
@@ -603,21 +603,21 @@ export default function JobDetailPage() {
 
       {/* First Week Prep — signed-in only */}
       {isSignedIn && (
-        <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 mb-4 overflow-hidden shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <button
             onClick={() => {
               setFwpOpen((prev) => !prev)
               if (!fwpOpen && !fwp) handleFirstWeekPrep()
             }}
-            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-brand-cream/10 transition-colors dark:hover:bg-brand-teal/10"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 rounded-lg bg-brand-olive/20 flex items-center justify-center dark:bg-brand-olive/20">
+                <svg className="w-4 h-4 text-brand-olive-dark dark:text-brand-olive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-gray-900">First Week Prep Guide</span>
+              <span className="text-sm font-semibold text-brand-navy dark:text-brand-cream">First Week Prep Guide</span>
             </div>
             <svg
               className={`w-4 h-4 text-gray-400 transition-transform ${fwpOpen ? 'rotate-180' : ''}`}
@@ -628,7 +628,7 @@ export default function JobDetailPage() {
           </button>
 
           {fwpOpen && (
-            <div className="px-6 pb-6 border-t border-gray-100">
+            <div className="px-6 pb-6 border-t border-gray-100 dark:border-brand-teal/20">
               {fwpLoading ? (
                 <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
                   <Spinner /> Preparing your guide...
@@ -636,15 +636,15 @@ export default function JobDetailPage() {
               ) : fwpError ? (
                 <div className="py-4">
                   <p className="text-sm text-red-600 mb-2">{fwpError}</p>
-                  <button onClick={handleFirstWeekPrep} className="text-sm text-blue-700 underline">Retry</button>
+                  <button onClick={handleFirstWeekPrep} className="text-sm text-brand-teal underline">Retry</button>
                 </div>
               ) : fwp ? (
                 <div className="pt-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">5 Tips for Your First Week</p>
+                  <p className="text-xs font-semibold text-brand-teal uppercase tracking-wide mb-3 dark:text-brand-sage">5 Tips for Your First Week</p>
                   <ol className="space-y-3">
                     {fwp.tips.map((tip, i) => (
                       <li key={i} className="flex gap-3 text-sm text-gray-700">
-                        <span className="shrink-0 w-6 h-6 rounded-full bg-orange-100 text-orange-700 font-bold flex items-center justify-center text-xs">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-brand-olive/25 text-brand-olive-dark font-bold flex items-center justify-center text-xs dark:bg-brand-teal/25 dark:text-brand-cream">
                           {i + 1}
                         </span>
                         <span className="leading-relaxed pt-0.5">{tip}</span>
@@ -660,19 +660,19 @@ export default function JobDetailPage() {
 
       {/* Cover Letter — signed-in only */}
       {isSignedIn && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4 shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 mb-4 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 rounded-lg bg-brand-cream/50 flex items-center justify-center dark:bg-brand-teal/20">
+                <svg className="w-4 h-4 text-brand-navy dark:text-brand-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h2 className="text-base font-semibold text-gray-900">Cover Letter</h2>
+              <h2 className="text-base font-semibold text-brand-navy dark:text-brand-cream">Cover Letter</h2>
             </div>
             <Link
               href={`/cover-letter/${job.id}`}
-              className="text-xs text-blue-700 underline hover:text-blue-900"
+              className="text-xs text-brand-teal underline hover:text-brand-navy"
             >
               Open full page
             </Link>
@@ -681,7 +681,7 @@ export default function JobDetailPage() {
           <button
             onClick={handleCoverLetter}
             disabled={clLoading}
-            className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {clLoading ? (
               <>
@@ -703,16 +703,16 @@ export default function JobDetailPage() {
                   readOnly
                   value={coverLetterText}
                   rows={12}
-                  className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-800 font-mono bg-gray-50 resize-none focus:outline-none"
+                  className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-800 font-mono bg-gray-50 resize-none focus:outline-none dark:bg-brand-navy dark:border-brand-teal/30 dark:text-gray-200"
                 />
                 {clStreaming && (
-                  <span className="absolute bottom-5 left-4 inline-block w-0.5 h-4 bg-blue-600 animate-pulse" />
+                  <span className="absolute bottom-5 left-4 inline-block w-0.5 h-4 bg-brand-teal animate-pulse" />
                 )}
               </div>
               {!clStreaming && coverLetterText && (
                 <button
                   onClick={handleCopyLetter}
-                  className="mt-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                  className="mt-2 px-4 py-2 border border-brand-teal/40 text-brand-teal rounded-lg text-sm font-semibold hover:bg-brand-teal/10 transition-colors dark:border-brand-teal/50 dark:text-brand-sage dark:hover:bg-brand-teal/20"
                 >
                   {clCopied ? 'Copied!' : 'Copy to Clipboard'}
                 </button>

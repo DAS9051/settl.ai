@@ -5,30 +5,30 @@ export default function HomePage() {
     <div className="flex flex-col items-center">
       {/* Hero */}
       <section className="relative text-center py-24 w-full overflow-hidden">
-        {/* Subtle background gradient */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/60 to-transparent rounded-3xl" />
+        {/* Background gradient using brand palette */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-brand-cream/30 via-brand-cream-light/20 to-transparent rounded-3xl dark:from-brand-navy/60 dark:via-brand-navy-dark/30 dark:to-transparent" />
 
-        <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">
+        <div className="inline-flex items-center gap-2 bg-brand-navy text-brand-cream text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase shadow-sm dark:bg-brand-teal dark:text-brand-cream">
           Powered by Claude AI
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-5 leading-tight tracking-tight">
+        <h1 className="text-5xl sm:text-6xl font-bold text-brand-navy mb-5 leading-tight tracking-tight dark:text-brand-cream">
           Your career,{' '}
-          <span className="text-blue-800">sorted.</span>
+          <span className="text-brand-teal dark:text-brand-olive">sorted.</span>
         </h1>
-        <p className="text-lg text-gray-500 max-w-lg mx-auto mb-10 leading-relaxed">
+        <p className="text-lg text-gray-600 max-w-lg mx-auto mb-10 leading-relaxed dark:text-brand-sage">
           Browse local job listings and get a personalised AI career roadmap — all in one place.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/jobs"
-            className="px-7 py-3 bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm text-sm"
+            className="px-7 py-3 bg-brand-navy text-white rounded-lg font-semibold hover:bg-brand-navy-light transition-all shadow-sm text-sm dark:bg-brand-teal dark:hover:bg-brand-teal-light"
           >
             Browse Jobs
           </Link>
           <Link
             href="/counsel"
-            className="px-7 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-blue-300 hover:text-blue-800 hover:bg-blue-50 transition-all text-sm"
+            className="px-7 py-3 border border-brand-teal text-brand-teal rounded-lg font-semibold hover:bg-brand-teal hover:text-white transition-all text-sm dark:border-brand-teal dark:text-brand-cream dark:hover:bg-brand-teal"
           >
             Get Career Advice
           </Link>
@@ -47,6 +47,7 @@ export default function HomePage() {
             ),
             title: 'Job Board',
             desc: 'Browse verified local listings filtered by skills and location.',
+            iconBg: 'bg-gray-100 text-brand-navy dark:bg-brand-teal/20 dark:text-brand-cream',
           },
           {
             href: '/counsel',
@@ -57,6 +58,7 @@ export default function HomePage() {
             ),
             title: 'AI Counselor',
             desc: 'Get a personalised roadmap and job matches from Claude.',
+            iconBg: 'bg-gray-100 text-brand-navy dark:bg-brand-teal/20 dark:text-brand-cream',
           },
           {
             href: '/resume',
@@ -67,6 +69,7 @@ export default function HomePage() {
             ),
             title: 'Resume Builder',
             desc: 'Import your PDF or generate a polished resume from your profile.',
+            iconBg: 'bg-gray-100 text-brand-navy dark:bg-brand-teal/20 dark:text-brand-cream',
           },
           {
             href: '/jobs',
@@ -77,28 +80,29 @@ export default function HomePage() {
             ),
             title: 'Skills Gap',
             desc: 'See exactly what skills you need for any role and how to get them.',
+            iconBg: 'bg-gray-100 text-brand-navy dark:bg-brand-teal/20 dark:text-brand-cream',
           },
-        ].map(({ href, icon, title, desc }) => (
+        ].map(({ href, icon, title, desc, iconBg }) => (
           <Link
             key={title}
             href={href}
-            className="group flex flex-col gap-3 bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md hover:border-blue-200 transition-all"
+            className="group flex flex-col gap-3 bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md hover:border-brand-teal/50 hover:-translate-y-0.5 transition-all dark:bg-brand-navy-dark dark:border-brand-teal/20 dark:hover:border-brand-teal/50"
           >
-            <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-50 text-blue-700 group-hover:bg-blue-100 transition-colors">
+            <div className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${iconBg}`}>
               {icon}
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-800 transition-colors">
+              <h2 className="text-sm font-semibold text-brand-navy mb-1 group-hover:text-brand-teal transition-colors dark:text-brand-cream dark:group-hover:text-brand-olive">
                 {title}
               </h2>
-              <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
+              <p className="text-gray-500 text-xs leading-relaxed dark:text-brand-sage">{desc}</p>
             </div>
           </Link>
         ))}
       </section>
 
       {/* Footer blurb */}
-      <p className="mt-16 text-xs text-gray-400 tracking-wide">
+      <p className="mt-16 text-xs text-gray-400 tracking-wide dark:text-brand-sage/60">
         settl.ai · Powered by Anthropic Claude
       </p>
     </div>

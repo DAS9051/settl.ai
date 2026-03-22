@@ -79,7 +79,7 @@ export default function CoverLetterPage() {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center">
         <p className="text-gray-600">Please sign in to generate a cover letter.</p>
-        <Link href="/sign-in" className="mt-3 inline-block text-blue-700 underline text-sm">
+        <Link href="/sign-in" className="mt-3 inline-block text-brand-teal underline text-sm">
           Sign In
         </Link>
       </div>
@@ -91,7 +91,7 @@ export default function CoverLetterPage() {
       {/* Back */}
       <Link
         href={`/jobs/${jobId}`}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-800 mb-6 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand-navy mb-6 transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -104,7 +104,7 @@ export default function CoverLetterPage() {
         <h1 className="text-3xl font-bold text-gray-900">Cover Letter</h1>
         {!jobLoading && job && (
           <p className="text-sm text-gray-500 mt-1">
-            For <span className="font-medium text-blue-700">{job.title}</span>
+            For <span className="font-medium text-brand-teal">{job.title}</span>
             {job.business_name && (
               <> at <span className="font-medium text-gray-700">{job.business_name}</span></>
             )}
@@ -153,7 +153,7 @@ export default function CoverLetterPage() {
           <button
             onClick={generate}
             disabled={clLoading}
-            className="px-4 py-2 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-navy-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {clLoading ? (
               <>

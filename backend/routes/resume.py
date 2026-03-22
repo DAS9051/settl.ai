@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, AsyncGenerator, Dict
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
@@ -27,9 +27,11 @@ from services.claude_service import generate_cover_letter, parse_resume, stream_
 
 router = APIRouter(prefix="/resume", tags=["resume"])
 
-# Path to tectonic binary (lives next to this backend)
+# Path to tectonic binary (lives next to this backend).
+# On Windows the binary has an .exe extension; on Unix it does not.
 _BACKEND_DIR = Path(__file__).parent.parent
-TECTONIC_BIN = str(_BACKEND_DIR / "tectonic")
+_tectonic_name = "tectonic.exe" if os.name == "nt" else "tectonic"
+TECTONIC_BIN = str(_BACKEND_DIR / _tectonic_name)
 
 
 # ---------------------------------------------------------------------------
@@ -218,10 +220,12 @@ def _compile_latex(tex_source: str) -> bytes:
     Write tex_source to a temp dir, compile with tectonic, return PDF bytes.
     Raises HTTPException on failure.
     """
-    if not os.path.isfile(TECTONIC_BIN):
+    # Prefer the bundled binary; fall back to tectonic on the system PATH.
+    tectonic_bin = TECTONIC_BIN if os.path.isfile(TECTONIC_BIN) else shutil.which("tectonic")
+    if not tectonic_bin:
         raise HTTPException(
             status_code=500,
-            detail="LaTeX compiler not found on server. Contact the admin.",
+            detail="LaTeX compiler (tectonic) not found on server. Contact the admin.",
         )
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -232,7 +236,7 @@ def _compile_latex(tex_source: str) -> bytes:
             f.write(tex_source)
 
         result = subprocess.run(
-            [TECTONIC_BIN, "--outdir", tmpdir, tex_path],
+            [tectonic_bin, "--outdir", tmpdir, tex_path],
             capture_output=True,
             text=True,
             timeout=60,

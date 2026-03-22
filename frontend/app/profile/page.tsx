@@ -17,7 +17,7 @@ const emptyExperience = (): ExperienceEntry => ({
 })
 
 const inputClass =
-  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
+  'w-full border border-gray-300 bg-white text-gray-900 placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal'
 
 export default function ProfilePage() {
   const { getToken } = useAuth()
@@ -160,15 +160,15 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{t.profileTitle}</h1>
-        <p className="text-sm text-gray-500 mt-1">{t.profileSubtitle}</p>
+        <h1 className="text-3xl font-bold text-brand-navy dark:text-brand-cream">{t.profileTitle}</h1>
+        <p className="text-sm text-gray-500 mt-1 dark:text-brand-sage">{t.profileSubtitle}</p>
       </div>
 
       {/* Profile Completeness Bar */}
       {!loading && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6 shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-5 mb-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-gray-700">{t.profileCompleteness}</span>
+            <span className="text-sm font-semibold text-brand-navy dark:text-brand-cream">{t.profileCompleteness}</span>
             <span
               className={`text-sm font-bold ${
                 completenessPercent === 100
@@ -209,8 +209,8 @@ export default function ProfilePage() {
         )}
 
         {/* Skills */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileSkills}</h2>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
+          <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide mb-3 dark:text-brand-sage">{t.profileSkills}</h2>
           <input
             type="text"
             value={skillsInput}
@@ -221,8 +221,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Target Roles */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileTargetRoles}</h2>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
+          <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide mb-3 dark:text-brand-sage">{t.profileTargetRoles}</h2>
           <input
             type="text"
             value={targetRolesInput}
@@ -233,8 +233,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Certifications */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profileCertifications}</h2>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
+          <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide mb-3 dark:text-brand-sage">{t.profileCertifications}</h2>
           <input
             type="text"
             value={certificationsInput}
@@ -245,8 +245,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Preferred Language */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{t.profilePreferredLanguage}</h2>
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
+          <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide mb-3 dark:text-brand-sage">{t.profilePreferredLanguage}</h2>
           <p className="text-xs text-gray-400 mb-3">{t.profileLanguageHint}</p>
           <select
             value={preferredLanguage}
@@ -265,20 +265,20 @@ export default function ProfilePage() {
         </div>
 
         {/* Education */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{t.profileEducation}</h2>
+            <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide dark:text-brand-sage">{t.profileEducation}</h2>
             <button
               type="button"
               onClick={addEducation}
-              className="text-sm text-blue-700 font-medium hover:underline"
+              className="text-sm text-brand-teal font-medium hover:underline"
             >
               {t.add}
             </button>
           </div>
           <div className="space-y-4">
             {education.map((entry, idx) => (
-              <div key={idx} className="border border-gray-100 rounded-lg p-4 relative bg-gray-50/50">
+              <div key={idx} className="border border-brand-teal/20 rounded-lg p-4 relative bg-brand-cream/10 dark:bg-brand-navy/40 dark:border-brand-teal/20">
                 {education.length > 1 && (
                   <button
                     type="button"
@@ -317,20 +317,20 @@ export default function ProfilePage() {
         </div>
 
         {/* Experience */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border-2 border-gray-200 p-6 shadow-sm dark:bg-brand-navy-dark dark:border-brand-teal/30">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{t.profileExperience}</h2>
+            <h2 className="text-sm font-semibold text-brand-teal uppercase tracking-wide dark:text-brand-sage">{t.profileExperience}</h2>
             <button
               type="button"
               onClick={addExperience}
-              className="text-sm text-blue-700 font-medium hover:underline"
+              className="text-sm text-brand-teal font-medium hover:underline"
             >
               {t.add}
             </button>
           </div>
           <div className="space-y-4">
             {experience.map((entry, idx) => (
-              <div key={idx} className="border border-gray-100 rounded-lg p-4 relative bg-gray-50/50">
+              <div key={idx} className="border border-brand-teal/20 rounded-lg p-4 relative bg-brand-cream/10 dark:bg-brand-navy/40 dark:border-brand-teal/20">
                 {experience.length > 1 && (
                   <button
                     type="button"
@@ -385,7 +385,7 @@ export default function ProfilePage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-3 bg-blue-800 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-brand-navy text-white rounded-lg text-sm font-semibold hover:bg-brand-teal transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:bg-brand-teal dark:hover:bg-brand-teal-light"
         >
           {saving ? t.profileSaving : t.profileSave}
         </button>

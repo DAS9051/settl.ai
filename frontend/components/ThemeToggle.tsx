@@ -25,6 +25,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-white/10 transition-colors"
       aria-label="Toggle dark mode"
+      suppressHydrationWarning
     >
       {dark ? (
         // Sun icon

@@ -12,17 +12,30 @@ const config: Config = {
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
-        navy: {
-          50:  '#f0f4ff',
-          100: '#dbe4ff',
-          200: '#bac8ff',
-          300: '#91a7ff',
-          400: '#748ffc',
-          500: '#5c7cfa',
-          600: '#4c6ef5',
-          700: '#3b5bdb',
-          800: '#1c3c8c',
-          900: '#0d1f5c',
+        'brand-navy': {
+          DEFAULT: '#033F63',
+          light:   '#0a5a8a',
+          dark:    '#022a43',
+        },
+        'brand-teal': {
+          DEFAULT: '#28666e',
+          light:   '#3a8a93',
+          dark:    '#1b464c',
+        },
+        'brand-sage': {
+          DEFAULT: '#7c9885',
+          light:   '#a2b8a9',
+          dark:    '#5a7362',
+        },
+        'brand-olive': {
+          DEFAULT: '#b5b682',
+          light:   '#d0d1a8',
+          dark:    '#8e8f5e',
+        },
+        'brand-cream': {
+          DEFAULT: '#f8fafc',
+          light:   '#ffffff',
+          dark:    '#e2e8f0',
         },
       },
     },

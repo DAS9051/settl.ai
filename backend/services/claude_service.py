@@ -86,9 +86,9 @@ Please provide career counseling advice. Return ONLY a JSON object with exactly 
   "board_recommendations": ["recommendation 1", "recommendation 2", ...]
 }}
 
-- "roadmap": 3-7 actionable career development steps tailored to this candidate.
+- "roadmap": 3-7 actionable career development steps tailored to this candidate. When recomending skills, provide links or names of real, valid, and free courses or certifications such as coursera that are relevant to the recommendations
 - "current_matches": IDs (UUIDs as strings) of jobs from the list above that are strong matches.
-- "board_recommendations": 3-5 suggestions for what types of jobs or skills to pursue next.
+- "board_recommendations": 3-5 suggestions for what types of jobs or skills to pursue next. When recomending skills, provide links or names of real, valid, and free courses or certifications such as coursera that are relevant to the recommendations.
 """
 
 
